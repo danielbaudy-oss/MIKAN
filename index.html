@@ -7,38 +7,39 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="MIKAN">
-  <meta name="theme-color" content="#1a1a2e">
+  <meta name="theme-color" content="#e9b595">
   <title>MIKAN - Clock In</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--primary:#1a1a2e;--accent:#e94560;--accent2:#ff6b6b;--surface:#16213e;--text:#eee;--text-dim:#94a3b8;--radius:14px}
+:root{--bg:#f1dfd3;--accent:#e9b595;--accent-dark:#d4956e;--text:#1a1a1a;--text-dim:#6b5c52;--radius:14px}
 html,body{height:100%;width:100%;overflow:hidden}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(135deg,var(--primary) 0%,var(--surface) 50%,#0f3460 100%);display:flex;align-items:center;justify-content:center;padding:20px}
-.login-card{background:rgba(255,255,255,0.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:40px 30px;width:100%;max-width:360px;text-align:center}
-.logo{font-size:56px;margin-bottom:8px}
-.brand{font-size:32px;font-weight:800;color:#fff;letter-spacing:4px;margin-bottom:4px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:#fff;border-radius:24px;padding:40px 30px;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.08)}
+.logo{margin-bottom:8px}
+.logo img{width:80px;height:80px;object-fit:contain}
+.brand{font-size:32px;font-weight:800;color:var(--text);letter-spacing:4px;margin-bottom:4px}
 .subtitle{color:var(--text-dim);font-size:13px;margin-bottom:36px}
 .pin-label{color:var(--text-dim);font-size:12px;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px;font-weight:600}
 .pin-dots{display:flex;justify-content:center;gap:14px;margin-bottom:30px}
-.pin-dot{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);transition:all .2s}
-.pin-dot.filled{background:var(--accent);border-color:var(--accent);box-shadow:0 0 12px rgba(233,69,96,0.4)}
+.pin-dot{width:18px;height:18px;border-radius:50%;border:2px solid #d4c4b8;transition:all .2s}
+.pin-dot.filled{background:var(--accent-dark);border-color:var(--accent-dark);box-shadow:0 0 12px rgba(212,149,110,0.4)}
 .pin-dot.error{background:#ef4444;border-color:#ef4444;animation:shake .4s}
 .numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:280px;margin:0 auto}
-.num-btn{height:64px;border:none;border-radius:var(--radius);background:rgba(255,255,255,0.08);color:#fff;font-size:24px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
-.num-btn:hover{background:rgba(255,255,255,0.15)}
-.num-btn:active{transform:scale(0.95);background:var(--accent)}
+.num-btn{height:64px;border:none;border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:24px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.num-btn:hover{background:var(--accent)}
+.num-btn:active{transform:scale(0.95);background:var(--accent-dark);color:#fff}
 .num-btn.action{background:transparent;font-size:18px;color:var(--text-dim)}
-.num-btn.action:hover{color:#fff}
-.num-btn.action:active{background:rgba(255,255,255,0.05)}
+.num-btn.action:hover{color:var(--text)}
+.num-btn.action:active{background:var(--bg)}
 .error-msg{color:#ef4444;font-size:13px;margin-top:20px;min-height:20px;font-weight:600}
-.loading-spinner{width:24px;height:24px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin:20px auto 0}
+.loading-spinner{width:24px;height:24px;border:3px solid #d4c4b8;border-top-color:var(--accent-dark);border-radius:50%;animation:spin .6s linear infinite;margin:20px auto 0}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 </style>
 </head>
 <body>
   <div class="login-card">
-    <div class="logo">🍊</div>
+    <div class="logo"><img src="https://826ac3dca631a4d4ca87.cdn6.editmysite.com/uploads/b/826ac3dca631a4d4ca872c3363285678a20453dd15e49a8c19d3a16881f3b78d/2023-03-28_11-10-28_1680016244.png?width=400&dpr=1.5" alt="MIKAN"></div>
     <div class="brand">MIKAN</div>
     <div class="subtitle">Employee Time Clock</div>
     <div class="pin-label">Enter your PIN</div>
