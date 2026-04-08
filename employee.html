@@ -373,7 +373,7 @@ function displayDay(punches) {
   html += `<div class="section-title">⏱️ Record Time</div>
     <input type="time" class="time-input" id="punchTime" value="${U.getCurrentTime()}" onchange="validateTime(this)" ${!canPunch?'disabled':''}>
     <div class="time-warning" id="timeWarning">⚠️ Cannot select a future time</div>
-    <button class="punch-btn ${nextType.toLowerCase()}" onclick="doPunch()" ${!canPunch?'disabled':''}><span>${nextType==='IN'?'🟢':'🟠'}</span> ${label}</button>`;
+    <button class="punch-btn ${nextType.toLowerCase()}" onclick="doPunch()" ${!canPunch?'disabled':''}>${label}</button>`;
 
   if (isF) html += '<div class="future-warning">⚠️ Cannot punch in future dates</div>';
 
