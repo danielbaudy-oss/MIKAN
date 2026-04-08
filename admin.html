@@ -246,26 +246,75 @@ function renderEmpCal(){
   for(let d=1;d<=last.getDate();d++){
     const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const p=S.empPunched[ds];const has=p&&p.count>0;
-    const isT=y===now.getFullYear()&&m===now.getMonth()&&d===now.getDate();
-    h+=`<div class="cal-cell${has?' has-data':''}${isT?' today':''}" onclick="openDayDetail('${ds}')"><div class="cal-day">${d}</div>${has?`<div class="cal-sub">${p.count} punches</div>`:''}</div>`;
+    const isT=y===now.getFullYear()&&m===now.getMonth()&&d===now.getDate();    h+=`<div class="cal-cell${has?' has-data':''}${isT?' today':''}" onclick="openDayDetail('${ds}')"><div class="cal-day">${d}</div>${has?`<div class="cal-sub">${p.count} punches</div>`:''}</div>`;
   }
   h+='</div>';$('mBody').innerHTML=h;
 }
 function calMo(d){S.calDate.setMonth(S.calDate.getMonth()+d);loadEmpCal();}
+// Parse date string as local (avoids UTC off-by-one)
+function parseDateLocal(ds){const[y,m,d]=ds.split('-').map(Number);return new Date(y,m-1,d);}
+
 async function openDayDetail(date){
+  S.currentDayDate=date;
   $('mBody').innerHTML='<div class="loading"><div class="spinner"></div></div>';
   try{
     const r=await api({action:'getEmployeeDetail',employee:S.selEmp.id,year:String(S.yr),month:String(S.mo)});
-    const punches=(r.success&&r.days[date])||[];
-    let mins=0;const sorted=[...punches].sort((a,b)=>a.time.localeCompare(b.time));
-    for(let i=0;i<sorted.length-1;i+=2)if(sorted[i].punchType==='IN'&&sorted[i+1]?.punchType==='OUT'){const[ih,im]=sorted[i].time.split(':').map(Number),[oh,om]=sorted[i+1].time.split(':').map(Number);const d=(oh*60+om)-(ih*60+im);if(d>0)mins+=d;}
-    const hrs=mins/60;const dt=new Date(date);
-    let h=`<button class="btn btn-primary" onclick="loadEmpCal()" style="margin-bottom:12px">← Back to Calendar</button>`;
-    h+=`<div class="day-hrs"><div class="day-hrs-val">${hrs.toFixed(2)}h</div><div class="day-hrs-lbl">${dt.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div></div>`;
-    if(!punches.length)h+='<div class="empty"><div class="empty-icon">🕐</div><p>No punches</p></div>';
-    else sorted.forEach(p=>{h+=`<div class="day-punch ${p.punchType.toLowerCase()}"><div style="display:flex;align-items:center;gap:10px"><span class="punch-type ${p.punchType.toLowerCase()}">${p.punchType}</span><span class="punch-time-lg">${p.time}</span></div></div>`;});
-    $('mBody').innerHTML=h;
+    renderDayDetail(date,r.success?r.days:{}); 
   }catch(e){$('mBody').innerHTML='<p>Error loading</p>';}
+}
+
+function renderDayDetail(date,days){
+  const punches=(days[date])||[];
+  let mins=0;const sorted=[...punches].sort((a,b)=>a.time.localeCompare(b.time));
+  for(let i=0;i<sorted.length-1;i+=2)if(sorted[i].punchType==='IN'&&sorted[i+1]?.punchType==='OUT'){const[ih,im]=sorted[i].time.split(':').map(Number),[oh,om]=sorted[i+1].time.split(':').map(Number);const d=(oh*60+om)-(ih*60+im);if(d>0)mins+=d;}
+  const hrs=mins/60;const dt=parseDateLocal(date);
+  let h=`<button class="btn btn-primary" onclick="loadEmpCal()" style="margin-bottom:12px;font-size:12px">← Calendar</button>`;
+  h+=`<div class="day-hrs"><div class="day-hrs-val">${hrs.toFixed(2)}h</div><div class="day-hrs-lbl">${dt.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div></div>`;
+  h+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-weight:600;font-size:13px">Punches</span><button class="btn btn-add" onclick="adminAddPunch('${date}')" style="padding:4px 10px;font-size:11px">➕ Add</button></div>`;
+  if(!punches.length)h+='<div class="empty"><div class="empty-icon">🕐</div><p>No punches</p></div>';
+  else sorted.forEach(p=>{
+    h+=`<div class="day-punch ${p.punchType.toLowerCase()}" id="adp-${p.punchId}" style="justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px"><span class="punch-type ${p.punchType.toLowerCase()}">${p.punchType}</span><span class="punch-time-lg" id="adpt-${p.punchId}">${p.time}</span></div>
+      <div style="display:flex;gap:4px">
+        <button class="btn-sm" onclick="adminEditPunch('${p.punchId}','${p.time}','${date}')" style="background:var(--accent-dark);color:#fff">✏️</button>
+        <button class="btn-sm btn-danger" onclick="adminDelPunch('${p.punchId}','${date}')">🗑️</button>
+      </div>
+    </div>`;
+  });
+  $('mBody').innerHTML=h;
+  S._dayDetailDays=days;
+}
+
+function adminAddPunch(date){
+  const now=new Date();const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const html=`<div class="fg"><label class="fl">Time</label><input type="time" id="apTime" class="fi" value="${t}" style="font-size:22px;text-align:center;font-weight:700"></div><div class="btn-row"><button class="btn-cancel" onclick="openDayDetail('${date}')">Cancel</button><button class="btn-save" id="apSave" onclick="saveAdminPunch('${date}')">➕ Add Punch</button></div>`;
+  $('mBody').innerHTML=`<button class="btn btn-primary" onclick="openDayDetail('${date}')" style="margin-bottom:12px;font-size:12px">← Back</button><div style="font-weight:600;margin-bottom:12px">${parseDateLocal(date).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>${html}`;
+}
+async function saveAdminPunch(date){
+  const time=$('apTime').value;if(!time)return toast('Select a time','error');
+  const btn=$('apSave');btn.disabled=true;btn.textContent='⏳';
+  try{const r=await api({action:'addPunch',employee:S.selEmp.id,name:S.selEmp.name,date,time});
+  if(r.success){toast('Punch added','success');await openDayDetail(date);}else{toast(r.message,'error');btn.disabled=false;btn.textContent='➕ Add Punch';}}
+  catch(e){toast('Error','error');btn.disabled=false;btn.textContent='➕ Add Punch';}
+}
+
+function adminEditPunch(id,time,date){
+  const html=`<div class="fg"><label class="fl">Time</label><input type="time" id="epTime" class="fi" value="${time}" style="font-size:22px;text-align:center;font-weight:700"></div><div class="btn-row"><button class="btn-cancel" onclick="openDayDetail('${date}')">Cancel</button><button class="btn-save" id="epSave" onclick="saveAdminEdit('${id}','${date}')">💾 Save</button></div>`;
+  $('mBody').innerHTML=`<button class="btn btn-primary" onclick="openDayDetail('${date}')" style="margin-bottom:12px;font-size:12px">← Back</button><div style="font-weight:600;margin-bottom:12px">Edit Punch</div>${html}`;
+}
+async function saveAdminEdit(id,date){
+  const time=$('epTime').value;if(!time)return toast('Select a time','error');
+  const btn=$('epSave');btn.disabled=true;btn.textContent='⏳';
+  try{const r=await api({action:'editPunch',punchId:id,time,employee:S.selEmp.id});
+  if(r.success){toast('Updated','success');await openDayDetail(date);}else{toast(r.message,'error');btn.disabled=false;btn.textContent='💾 Save';}}
+  catch(e){toast('Error','error');btn.disabled=false;btn.textContent='💾 Save';}
+}
+async function adminDelPunch(id,date){
+  if(!confirm('Delete this punch?'))return;
+  const el=document.getElementById(`adp-${id}`);if(el)el.style.opacity='0.4';
+  try{const r=await api({action:'deletePunch',punchId:id,employee:S.selEmp.id});
+  if(r.success){toast('Deleted','success');await openDayDetail(date);}else{toast(r.message,'error');if(el)el.style.opacity='1';}}
+  catch(e){toast('Error','error');if(el)el.style.opacity='1';}
 }
 
 function exportCSV(){let csv='Name,Role,Days Worked,Hours\n';S.dash.forEach(e=>{csv+=`"${e.name}","${e.role}",${e.daysWorked},${e.monthHours.toFixed(2)}\n`;});const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`MIKAN_${S.yr}-${String(S.mo).padStart(2,'0')}.csv`;a.click();URL.revokeObjectURL(url);toast('Exported','success');}
@@ -380,13 +429,13 @@ async function saveAdd(){const n=$('nN').value.trim();if(!n)return toast('Name r
 
 function editEmp(id){const e=S.emps.find(x=>x.id===id);if(!e)return;openModal('✏️ Edit Employee',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Name</label><input type="text" id="eN" class="fi" value="${e.name}"></div><div class="fg"><label class="fl">PIN</label><input type="text" id="eP" class="fi" value="${e.pin}" maxlength="4"></div><div class="fg"><label class="fl">Role</label><select id="eR" class="fs"><option value="employee" ${e.role==='employee'?'selected':''}>Employee</option><option value="admin" ${e.role==='admin'?'selected':''}>Admin</option></select></div><div class="fg"><label class="fl">Status</label><select id="eS" class="fs"><option value="Active" ${e.status==='Active'?'selected':''}>Active</option><option value="Inactive" ${e.status==='Inactive'?'selected':''}>Inactive</option></select></div><div class="fg"><label class="fl">Vacation</label><input type="number" id="eA" class="fi" value="${e.annualDays}"></div><div class="fg"><label class="fl">Personal</label><input type="number" id="ePD" class="fi" value="${e.personalDays}"></div><div class="fg"><label class="fl">Annual Hours</label><input type="number" id="eH" class="fi" value="${e.expectedHours}"></div><div class="fg"><label class="fl">Medical Hours</label><input type="number" id="eMH" class="fi" value="${e.medicalHours||20}"></div></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveEdit('${id}')">💾 Save</button></div>`);}
 async function saveEdit(id){const btn=document.querySelector('#mBody .btn-save');btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'editEmployee',id,name:$('eN').value,pin:$('eP').value,role:$('eR').value,status:$('eS').value,annualDays:$('eA').value,personalDays:$('ePD').value,expectedHours:$('eH').value,medicalHours:$('eMH').value});if(r.success){toast('Updated','success');closeModal();await loadAll(true);render();}else{toast(r.message,'error');btn.disabled=false;btn.textContent='💾 Save';}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='💾 Save';}}
-async function delEmp(id,n){if(!confirm(`Delete ${n}?`))return;try{const r=await api({action:'deleteEmployee',employee:id});if(r.success){toast('Deleted','success');await loadAll(true);render();}else toast(r.message,'error');}catch(e){toast('Error','error');}}
+async function delEmp(id,n){if(!confirm(`Delete ${n}?`))return;const btn=event.target;btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'deleteEmployee',employee:id});if(r.success){toast('Deleted','success');await loadAll(true);render();}else{toast(r.message,'error');btn.disabled=false;btn.textContent='🗑️';}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='🗑️';}}
 
 // ===== TIME OFF ACTIONS =====
-async function actReq(id,a){try{const r=await api({action:a==='approve'?'approveHoliday':'rejectHoliday',requestId:id});if(r.success){toast(`Request ${a}d`,'success');await loadAll(true);render();}else toast(r.message,'error');}catch(e){toast('Error','error');}}
+async function actReq(id,a){const btn=event.target;btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:a==='approve'?'approveHoliday':'rejectHoliday',requestId:id});if(r.success){toast(`Request ${a}d`,'success');await loadAll(true);render();}else{toast(r.message,'error');btn.disabled=false;btn.textContent=a==='approve'?'✅':'❌';}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent=a==='approve'?'✅':'❌';}}
 function addClo(){openModal('➕ Add Closure',`<div class="fg"><label class="fl">Name</label><input type="text" id="cN" class="fi" placeholder="e.g., New Year's Day"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Start</label><input type="date" id="cS" class="fi"></div><div class="fg"><label class="fl">End</label><input type="date" id="cE" class="fi"></div></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveClo()">➕ Add</button></div>`);}
-async function saveClo(){const n=$('cN').value,s=$('cS').value,e=$('cE').value;if(!n||!s||!e)return toast('All fields required','error');try{const r=await api({action:'addClosure',name:n,startDate:s,endDate:e});if(r.success){toast('Added','success');closeModal();await loadAll(true);render();}else toast(r.message,'error');}catch(e){toast('Error','error');}}
-async function delClo(id){if(!confirm('Delete?'))return;try{const r=await api({action:'deleteClosure',closureId:id});if(r.success){toast('Deleted','success');await loadAll(true);render();}else toast(r.message,'error');}catch(e){toast('Error','error');}}
+async function saveClo(){const n=$('cN').value,s=$('cS').value,e=$('cE').value;if(!n||!s||!e)return toast('All fields required','error');const btn=document.querySelector('#mBody .btn-save');btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'addClosure',name:n,startDate:s,endDate:e});if(r.success){toast('Added','success');closeModal();await loadAll(true);render();}else{toast(r.message,'error');btn.disabled=false;btn.textContent='➕ Add';}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='➕ Add';}}
+async function delClo(id){if(!confirm('Delete?'))return;const btn=event.target;btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'deleteClosure',closureId:id});if(r.success){toast('Deleted','success');await loadAll(true);render();}else{toast(r.message,'error');btn.disabled=false;btn.textContent='🗑️';}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='🗑️';}}
 
 // ===== INIT =====
 window.onload=async()=>{if(!U)return;$('mainContent').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';await loadAll();render();};
