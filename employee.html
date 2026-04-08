@@ -302,12 +302,22 @@ async function api(params) {
 }
 
 async function apiPost(data) {
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(data)
-  });
-  return res.json();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(data),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    return res.json();
+  } catch(e) {
+    clearTimeout(timeout);
+    if (e.name === 'AbortError') throw new Error('Request timed out — tap to retry');
+    throw e;
+  }
 }
 
 function logout() {
@@ -356,7 +366,10 @@ async function loadDayData(force) {
       S.dayCache[ds] = data.punches || [];
       displayDay(data.punches || []);
     } else displayDay([]);
-  } catch(e) { showToast('Error loading data','error'); displayDay([]); }
+  } catch(e) {
+    const ds = U.formatDate(S.currentDate);
+    $('content').innerHTML=`<div class="card"><div class="date-nav"><button class="date-nav-btn" onclick="changeDay(-1)">‹</button><div class="date-center"><div class="date-number">${S.currentDate.getDate()}</div></div><button class="date-nav-btn" onclick="changeDay(1)">›</button></div></div><div class="card"><div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">${e.message||'Connection error'}</div><button class="punch-btn in" onclick="loadDayData(true)" style="margin-top:12px">🔄 Retry</button></div></div>`;
+  }
 }
 
 function invalidateDayCache(ds) {

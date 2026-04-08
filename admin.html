@@ -147,12 +147,13 @@ else document.getElementById('adminName').textContent=U.name;
 const $=id=>document.getElementById(id);
 const toast=(m,t='')=>{const e=$('toast');e.textContent=m;e.className=`toast ${t} show`;setTimeout(()=>e.classList.remove('show'),3000)};
 const HT={Annual:'Vacation',Personal:'Personal',Medical:'Sick Leave',MedAppt:'Med. Visit'};
-async function api(d){return(await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(d)})).json();}
+async function api(d){try{const c=new AbortController();const t=setTimeout(()=>c.abort(),30000);const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(d),signal:c.signal});clearTimeout(t);return r.json();}catch(e){if(e.name==='AbortError')throw new Error('Request timed out');throw e;}}
 function logout(){sessionStorage.removeItem('mikan_user');window.location.href='index.html';}
 
 const S={sec:'hours',yr:new Date().getFullYear(),mo:new Date().getMonth()+1,emps:[],dash:[],pending:[],closures:[],paidHrs:[],loaded:false,mk:'',search:'',selEmp:null,calDate:null,empPunched:{}};
 
-async function loadAll(f){const k=`${S.yr}-${S.mo}`;if(S.loaded&&S.mk===k&&!f)return;try{const r=await api({action:'adminInit',year:String(S.yr),month:String(S.mo)});if(r.success){S.dash=r.dashboard;S.emps=r.employees;S.pending=r.pendingRequests;S.approvedHols=r.approvedHolidays||[];S.closures=r.closures;S.loaded=true;S.mk=k;updBadge();}}catch(e){toast('Error loading','error');}}
+async function loadAll(f){const k=`${S.yr}-${S.mo}`;if(S.loaded&&S.mk===k&&!f)return;try{const r=await api({action:'adminInit',year:String(S.yr),month:String(S.mo)});if(r.success){S.dash=r.dashboard;S.emps=r.employees;S.pending=r.pendingRequests;S.approvedHols=r.approvedHolidays||[];S.closures=r.closures;S.loaded=true;S.mk=k;updBadge();}}catch(e){$('mainContent').innerHTML=`<div class="empty" style="padding:60px"><div class="empty-icon">⚠️</div><p>Connection error</p><p style="font-size:12px;margin-top:8px;color:var(--text-dim)">${e.message||'Could not reach server'}</p><button class="btn btn-primary" onclick="retryLoad()" style="margin-top:16px">🔄 Retry</button></div>`;}}
+async function retryLoad(){$('mainContent').innerHTML='<div class="loading"><div class="spinner"></div><p>Retrying...</p></div>';await loadAll(true);if(S.loaded)render();}
 function updBadge(){const b=$('pendingBadge'),c=S.pending.length;if(c>0){b.textContent=c;b.style.display='inline';}else b.style.display='none';}
 
 function showSection(s){S.sec=s;document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));$(`nav${s.charAt(0).toUpperCase()+s.slice(1)}`).classList.add('active');$('sidebar').classList.remove('open');render();}
@@ -182,6 +183,7 @@ async function refresh(){$('mainContent').innerHTML='<div class="loading"><div c
 // ===== HOURS SECTION =====
 if(!S.viewMode)S.viewMode='monthly';
 if(!S.weekOff)S.weekOff=0;
+if(!S.hrActiveTab)S.hrActiveTab='empTab';
 
 function renderHours(m){
   const r=S.dash,te=r.length;
@@ -196,12 +198,12 @@ function renderHours(m){
   h+=`<div class="stats-grid"><div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">${te}</div><div class="stat-label">Employees</div></div><div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-value">${th.toFixed(1)}h</div><div class="stat-label">Total Hours</div></div><div class="stat-card"><div class="stat-icon">📊</div><div class="stat-value">${ah.toFixed(1)}h</div><div class="stat-label">Avg Hours</div></div><div class="stat-card"><div class="stat-icon">📋</div><div class="stat-value">${S.pending.length}</div><div class="stat-label">Pending</div></div></div>`;
   // Tabs row with view toggle + date selector
   h+=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">`;
-  h+=`<div class="tabs" id="hrTabs" style="margin-bottom:0;flex:1"><button class="tab active" onclick="hrTab('empTab')">👥 Employees</button><button class="tab" onclick="hrTab('paidTab')">💰 Paid Hours</button><button class="tab" onclick="hrTab('freezeTab')">🔒 Freeze</button></div>`;
+  h+=`<div class="tabs" id="hrTabs" style="margin-bottom:0;flex:1"><button class="tab ${S.hrActiveTab==='empTab'?'active':''}" onclick="hrTab('empTab')">👥 Employees</button><button class="tab ${S.hrActiveTab==='paidTab'?'active':''}" onclick="hrTab('paidTab')">💰 Paid Hours</button><button class="tab ${S.hrActiveTab==='freezeTab'?'active':''}" onclick="hrTab('freezeTab')">🔒 Freeze</button></div>`;
   h+=`<div style="display:flex;gap:6px;align-items:center">`;
   h+=`<div class="tabs" style="margin-bottom:0;padding:3px"><button class="tab ${S.viewMode==='monthly'?'active':''}" onclick="setView('monthly')" style="padding:6px 10px;font-size:11px">📅 Monthly</button><button class="tab ${S.viewMode==='weekly'?'active':''}" onclick="setView('weekly')" style="padding:6px 10px;font-size:11px">📆 Weekly</button></div>`;
   h+=S.viewMode==='monthly'?mSel():wSel();
   h+=`</div></div>`;
-  h+=`<div id="empTab" class="tab-content active"></div><div id="paidTab" class="tab-content"></div><div id="freezeTab" class="tab-content"></div>`;
+  h+=`<div id="empTab" class="tab-content ${S.hrActiveTab==='empTab'?'active':''}"></div><div id="paidTab" class="tab-content ${S.hrActiveTab==='paidTab'?'active':''}"></div><div id="freezeTab" class="tab-content ${S.hrActiveTab==='freezeTab'?'active':''}"></div>`;
   m.innerHTML=h;
   renderEmpTable();renderPaidTab();renderFreezeTab();
 }
@@ -210,7 +212,7 @@ function setView(v){S.viewMode=v;S.weekOff=0;render();}
 function getWeekRange(off){const now=new Date();const d=new Date(now);d.setDate(d.getDate()-d.getDay()+1+(off*7));const start=new Date(d);const end=new Date(d);end.setDate(end.getDate()+6);return{start,end,label:start.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' - '+end.toLocaleDateString('en-US',{month:'short',day:'numeric'})};}
 function wSel(){const w=getWeekRange(S.weekOff);const isNow=S.weekOff===0;return`<div class="month-sel"><button class="month-btn" onclick="S.weekOff--;render()">‹</button><div class="month-lbl">${w.label}${isNow?'<span class="month-cur">NOW</span>':''}</div><button class="month-btn" onclick="S.weekOff++;render()" ${isNow?'disabled':''}>›</button></div>`;}
 
-function hrTab(id){document.querySelectorAll('#hrTabs .tab').forEach((t,i)=>t.classList.toggle('active',['empTab','paidTab','freezeTab'][i]===id));['empTab','paidTab','freezeTab'].forEach(t=>{const el=$(t);if(el)el.classList.toggle('active',t===id);});}
+function hrTab(id){S.hrActiveTab=id;document.querySelectorAll('#hrTabs .tab').forEach((t,i)=>t.classList.toggle('active',['empTab','paidTab','freezeTab'][i]===id));['empTab','paidTab','freezeTab'].forEach(t=>{const el=$(t);if(el)el.classList.toggle('active',t===id);});}
 
 function renderEmpTable(){
   const el=$('empTab');if(!el)return;
@@ -270,23 +272,15 @@ function parseDateLocal(ds){const[y,m,d]=ds.split('-').map(Number);return new Da
 async function openDayDetail(date){
   S.currentDayDate=date;
   $('mBody').innerHTML='<div class="loading"><div class="spinner"></div></div>';
-  const calY=S.calDate.getFullYear(),calM=S.calDate.getMonth()+1;
   try{
-    const r=await api({action:'getEmployeeDetail',employee:S.selEmp.id,year:String(calY),month:String(calM)});
-    renderDayDetail(date,r.success?r.days:{}); 
+    // Fetch punches for this specific day directly — avoids month-level date key mismatches
+    const r=await api({action:'getDayData',employee:S.selEmp.id,date:date});
+    const punches=(r.success?r.punches:[])||[];
+    renderDayDetail(date,punches);
   }catch(e){$('mBody').innerHTML='<p>Error loading</p>';}
 }
 
-function renderDayDetail(date,days){
-  // Try exact match first, then try adjacent dates as fallback for any remaining timezone issues
-  let punches=days[date]||[];
-  if(!punches.length){
-    // Try day+1 in case of remaining offset
-    const[y,m,d]=date.split('-').map(Number);
-    const next=new Date(y,m-1,d+1);
-    const nextDs=`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
-    if(days[nextDs])punches=days[nextDs];
-  }
+function renderDayDetail(date,punches){
   let mins=0;const sorted=[...punches].sort((a,b)=>a.time.localeCompare(b.time));
   for(let i=0;i<sorted.length-1;i+=2)if(sorted[i].punchType==='IN'&&sorted[i+1]?.punchType==='OUT'){const[ih,im]=sorted[i].time.split(':').map(Number),[oh,om]=sorted[i+1].time.split(':').map(Number);const d=(oh*60+om)-(ih*60+im);if(d>0)mins+=d;}
   const hrs=mins/60;const dt=parseDateLocal(date);
@@ -304,7 +298,6 @@ function renderDayDetail(date,days){
     </div>`;
   });
   $('mBody').innerHTML=h;
-  S._dayDetailDays=days;
 }
 
 function adminAddPunch(date){
