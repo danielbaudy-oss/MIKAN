@@ -248,11 +248,20 @@ function toTab(id){const tabs=['reqTab','ovTab','calTab','cloTab'];document.quer
 
 function renderReqTab(){
   const el=$('reqTab');if(!el)return;
-  if(!S.pending.length){el.innerHTML='<div class="card"><div class="card-body"><div class="empty"><div class="empty-icon">✅</div><p>No pending requests</p></div></div></div>';return;}
-  let h=`<div class="card"><table><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th><th>Actions</th></tr></thead><tbody>`;
-  S.pending.forEach(r=>{h+=`<tr><td class="emp-name">${r.employeeName}</td><td><span class="badge badge-${r.type.toLowerCase()}">${HT[r.type]||r.type}</span></td><td>${new Date(r.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric'})}${r.startDate!==r.endDate?' - '+new Date(r.endDate).toLocaleDateString('en-US',{month:'short',day:'numeric'}):''}</td><td>${r.days}</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.reason||'-'}</td><td><button class="btn-sm btn-success" onclick="actReq('${r.requestId}','approve')">✅</button> <button class="btn-sm btn-danger" onclick="actReq('${r.requestId}','reject')">❌</button></td></tr>`;});
-  h+='</tbody></table></div>';el.innerHTML=h;
+  const pc=S.pending.length, ac=(S.approvedHols||[]).length;
+  let h=`<div class="tabs" id="reqSubTabs" style="margin-bottom:12px"><button class="tab active" onclick="reqSub('reqPending')">⏳ Pending${pc?` <span class="tab-badge">${pc}</span>`:''}</button><button class="tab" onclick="reqSub('reqApproved')">✅ Approved${ac?` <span class="tab-badge" style="background:var(--success)">${ac}</span>`:''}</button></div>`;
+  h+=`<div id="reqPending" class="tab-content active"></div><div id="reqApproved" class="tab-content"></div>`;
+  el.innerHTML=h;
+  // Pending
+  const pEl=$('reqPending');
+  if(!S.pending.length)pEl.innerHTML='<div class="card"><div class="card-body"><div class="empty"><div class="empty-icon">✅</div><p>No pending requests</p></div></div></div>';
+  else{let t=`<div class="card"><table><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th><th>Actions</th></tr></thead><tbody>`;S.pending.forEach(r=>{t+=`<tr><td class="emp-name">${r.employeeName}</td><td><span class="badge badge-${r.type.toLowerCase()}">${HT[r.type]||r.type}</span></td><td>${new Date(r.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric'})}${r.startDate!==r.endDate?' - '+new Date(r.endDate).toLocaleDateString('en-US',{month:'short',day:'numeric'}):''}</td><td>${r.days}</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.reason||'-'}</td><td><button class="btn-sm btn-success" onclick="actReq('${r.requestId}','approve')">✅</button> <button class="btn-sm btn-danger" onclick="actReq('${r.requestId}','reject')">❌</button></td></tr>`;});t+='</tbody></table></div>';pEl.innerHTML=t;}
+  // Approved
+  const aEl=$('reqApproved');const approved=S.approvedHols||[];
+  if(!approved.length)aEl.innerHTML='<div class="card"><div class="card-body"><div class="empty"><div class="empty-icon">📋</div><p>No approved requests</p></div></div></div>';
+  else{let t=`<div class="card"><table><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th></tr></thead><tbody>`;approved.forEach(r=>{t+=`<tr><td class="emp-name">${r.employeeName}</td><td><span class="badge badge-${r.type.toLowerCase()}">${HT[r.type]||r.type}</span></td><td>${new Date(r.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric'})}${r.startDate!==r.endDate?' - '+new Date(r.endDate).toLocaleDateString('en-US',{month:'short',day:'numeric'}):''}</td><td>${r.days}</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.reason||'-'}</td></tr>`;});t+='</tbody></table></div>';aEl.innerHTML=t;}
 }
+function reqSub(id){const tabs=['reqPending','reqApproved'];document.querySelectorAll('#reqSubTabs .tab').forEach((t,i)=>t.classList.toggle('active',tabs[i]===id));tabs.forEach(t=>{const el=$(t);if(el)el.classList.toggle('active',t===id);});}
 
 function renderOvTab(){
   const el=$('ovTab');if(!el)return;
