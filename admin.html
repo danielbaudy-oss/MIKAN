@@ -161,7 +161,20 @@ function openModal(t,h,lg){$('mTitle').textContent=t;$('mBody').innerHTML=h;$('m
 function closeModal(){$('modalBg').classList.remove('active');}
 
 function mSel(){const d=new Date(S.yr,S.mo-1),n=new Date(),c=S.yr===n.getFullYear()&&S.mo===n.getMonth()+1;return`<div class="month-sel"><button class="month-btn" onclick="chgMo(-1)">‹</button><div class="month-lbl">${d.toLocaleDateString('en-US',{month:'long',year:'numeric'})}${c?'<span class="month-cur">NOW</span>':''}</div><button class="month-btn" onclick="chgMo(1)" ${c?'disabled':''}>›</button></div>`;}
-async function chgMo(d){const n=new Date();if(d>0&&S.yr===n.getFullYear()&&S.mo===n.getMonth()+1)return;S.mo+=d;if(S.mo<1){S.mo=12;S.yr--;}else if(S.mo>12){S.mo=1;S.yr++;}$('mainContent').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';await loadAll(true);render();}
+async function chgMo(d){const n=new Date();if(d>0&&S.yr===n.getFullYear()&&S.mo===n.getMonth()+1)return;S.mo+=d;if(S.mo<1){S.mo=12;S.yr--;}else if(S.mo>12){S.mo=1;S.yr++;}
+  // Update month selector immediately, show spinner only in table
+  const mDisp=document.querySelector('.month-lbl');if(mDisp){const nd=new Date(S.yr,S.mo-1),nc=new Date(),ic=S.yr===nc.getFullYear()&&S.mo===nc.getMonth()+1;mDisp.innerHTML=nd.toLocaleDateString('en-US',{month:'long',year:'numeric'})+(ic?'<span class="month-cur">NOW</span>':'');}
+  const nextBtn=document.querySelector('.month-btn:last-child');if(nextBtn){const nc=new Date();nextBtn.disabled=S.yr===nc.getFullYear()&&S.mo===nc.getMonth()+1;}
+  // Show spinner only in the table body, keep rest of page intact
+  const empTab=$('empTab');if(empTab){const tbody=empTab.querySelector('tbody');if(tbody)tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:20px"><div class="spinner" style="margin:0 auto;width:28px;height:28px"></div></td></tr>`;}
+  await loadAll(true);
+  // Just re-render the table and stats, not the whole page
+  renderEmpTable();
+  // Update stats cards
+  const r=S.dash,te=r.length,th=S.viewMode==='weekly'?0:r.reduce((s,e)=>s+e.monthHours,0),ah=te?th/te:0;
+  const cards=document.querySelectorAll('.stat-card .stat-value');
+  if(cards.length>=4){cards[0].textContent=te;cards[1].textContent=th.toFixed(1)+'h';cards[2].textContent=ah.toFixed(1)+'h';cards[3].textContent=S.pending.length;}
+}
 async function refresh(){$('mainContent').innerHTML='<div class="loading"><div class="spinner"></div><p>Refreshing...</p></div>';await loadAll(true);render();}
 </script>
 
