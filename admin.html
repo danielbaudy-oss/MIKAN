@@ -382,25 +382,32 @@ function renderCalTab(){
   const y=S.calViewDate.getFullYear(),m=S.calViewDate.getMonth(),first=new Date(y,m,1),last=new Date(y,m+1,0),start=first.getDay();
   const now=new Date(),isCur=y===now.getFullYear()&&m===now.getMonth();
 
-  // Build closure map for this month (use local date parsing to avoid UTC shift)
+  // Build closure map for this month
   const cloMap={};
   S.closures.forEach(c=>{
-    const[sy,sm2,sd]=c.startDate.split('-').map(Number);
-    const[ey,em2,ed]=c.endDate.split('-').map(Number);
-    const s=new Date(sy,sm2-1,sd),e=new Date(ey,em2-1,ed);
+    // Handle both yyyy-MM-dd strings and other date formats
+    let sd=c.startDate,ed=c.endDate;
+    // Extract yyyy-MM-dd if present
+    const sm=String(sd).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+    const em=String(ed).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if(!sm||!em)return;
+    const s=new Date(Number(sm[1]),Number(sm[2])-1,Number(sm[3]));
+    const e=new Date(Number(em[1]),Number(em[2])-1,Number(em[3]));
     for(let d=new Date(s);d<=e;d.setDate(d.getDate()+1)){
       const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       cloMap[ds]=c.name;
     }
   });
 
-  // Build approved holidays map: date -> [{name, type}]
+  // Build holidays map: date -> [{name, type}]
   const holMap={};
   S.pending.concat(S.approvedHols||[]).forEach(r=>{
     if(r.status!=='Approved'&&r.status!=='Pending')return;
-    const[sy,sm2,sd]=r.startDate.split('-').map(Number);
-    const[ey,em2,ed]=r.endDate.split('-').map(Number);
-    const s=new Date(sy,sm2-1,sd),e=new Date(ey,em2-1,ed);
+    const sm=String(r.startDate).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+    const em=String(r.endDate).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if(!sm||!em)return;
+    const s=new Date(Number(sm[1]),Number(sm[2])-1,Number(sm[3]));
+    const e=new Date(Number(em[1]),Number(em[2])-1,Number(em[3]));
     for(let d=new Date(s);d<=e;d.setDate(d.getDate()+1)){
       const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       if(!holMap[ds])holMap[ds]=[];
