@@ -278,7 +278,15 @@ async function openDayDetail(date){
 }
 
 function renderDayDetail(date,days){
-  const punches=(days[date])||[];
+  // Try exact match first, then try adjacent dates as fallback for any remaining timezone issues
+  let punches=days[date]||[];
+  if(!punches.length){
+    // Try day+1 in case of remaining offset
+    const[y,m,d]=date.split('-').map(Number);
+    const next=new Date(y,m-1,d+1);
+    const nextDs=`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
+    if(days[nextDs])punches=days[nextDs];
+  }
   let mins=0;const sorted=[...punches].sort((a,b)=>a.time.localeCompare(b.time));
   for(let i=0;i<sorted.length-1;i+=2)if(sorted[i].punchType==='IN'&&sorted[i+1]?.punchType==='OUT'){const[ih,im]=sorted[i].time.split(':').map(Number),[oh,om]=sorted[i+1].time.split(':').map(Number);const d=(oh*60+om)-(ih*60+im);if(d>0)mins+=d;}
   const hrs=mins/60;const dt=parseDateLocal(date);
