@@ -7,13 +7,12 @@
   <title>MIKAN - Admin</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#f1dfd3;--accent:#e9b595;--accent-dark:#d4956e;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--card:#fff;--border:#e0d0c4;--text:#1a1a1a;--text-dim:#6b5c52;--radius:14px}
+:root{--bg:#f1dfd3;--accent:#e9b595;--accent-dark:#d4956e;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--border:#e0d0c4;--text:#1a1a1a;--text-dim:#6b5c52;--radius:14px}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 .sidebar{position:fixed;left:0;top:0;bottom:0;width:260px;background:#fff;padding:20px;overflow-y:auto;z-index:100;border-right:1px solid var(--border);box-shadow:2px 0 10px rgba(0,0,0,0.04)}
 .sidebar-header{display:flex;align-items:center;gap:12px;margin-bottom:28px;padding-bottom:18px;border-bottom:1px solid var(--border)}
 .sidebar-logo img{width:40px;height:40px;object-fit:contain}
-.sidebar-title h1{font-size:16px;font-weight:700;color:var(--text)}
-.sidebar-title p{font-size:11px;color:var(--text-dim)}
+.sidebar-title h1{font-size:16px;font-weight:700}.sidebar-title p{font-size:11px;color:var(--text-dim)}
 .nav-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--radius);cursor:pointer;transition:all .2s;margin-bottom:4px;color:var(--text-dim);font-size:14px}
 .nav-item:hover{background:var(--accent);color:var(--text)}
 .nav-item.active{background:var(--accent-dark);color:#fff;font-weight:600}
@@ -21,68 +20,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .nav-badge{margin-left:auto;background:var(--danger);color:#fff;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700}
 .sidebar-footer{position:absolute;bottom:20px;left:20px;right:20px}
 .admin-info{background:var(--bg);border-radius:var(--radius);padding:12px;margin-bottom:10px}
-.admin-name{font-weight:600;font-size:13px;color:var(--text)}.admin-role{font-size:11px;color:var(--text-dim)}
+.admin-name{font-weight:600;font-size:13px}.admin-role{font-size:11px;color:var(--text-dim)}
 .logout-btn{width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text-dim);cursor:pointer;font-weight:600;font-size:13px}
 .logout-btn:hover{background:var(--accent);color:var(--text)}
 .main{margin-left:260px;padding:24px;min-height:100vh}
-.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:16px}
-.page-title{font-size:24px;font-weight:700;color:var(--text)}
-.page-subtitle{color:var(--text-dim);font-size:13px;margin-top:4px}
-.action-btn{padding:10px 18px;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;transition:all .2s;display:inline-flex;align-items:center;gap:6px;color:#fff}
-.action-btn.primary{background:var(--accent-dark)}.action-btn.primary:hover{background:#c07a50}
-.action-btn.add{background:rgba(212,149,110,0.15);color:var(--accent-dark);border:1px solid var(--accent)}.action-btn.add:hover{background:rgba(212,149,110,0.25)}
-.action-btn:disabled{opacity:.5;cursor:not-allowed}
-.action-btn-sm{padding:6px 12px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:#fff}
-.action-btn-sm.approve{background:var(--success)}.action-btn-sm.reject{background:var(--danger)}
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
-.stat-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
-.stat-icon{font-size:28px;margin-bottom:10px}.stat-value{font-size:28px;font-weight:700;color:var(--text)}.stat-label{font-size:12px;color:var(--text-dim);margin-top:4px}
-.card{background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
-.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
-.card-title{font-size:16px;font-weight:700;color:var(--text)}.card-body{padding:20px}
-.month-selector{display:flex;align-items:center;gap:8px;background:#fff;padding:6px;border-radius:var(--radius);border:1px solid var(--border)}
-.month-nav-btn{width:36px;height:36px;border:none;border-radius:8px;background:var(--bg);cursor:pointer;font-size:16px;font-weight:700;color:var(--text);display:flex;align-items:center;justify-content:center}
-.month-nav-btn:hover{background:var(--accent)}.month-nav-btn:disabled{opacity:.3;cursor:not-allowed}
-.month-display{min-width:140px;text-align:center;font-weight:700;color:var(--text);font-size:14px}
-.month-current{background:var(--accent-dark);color:#fff;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;margin-left:6px}
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.page-title{font-size:22px;font-weight:700}.page-subtitle{color:var(--text-dim);font-size:12px;margin-top:2px}
+.btn{padding:8px 16px;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;transition:all .2s;display:inline-flex;align-items:center;gap:6px;color:#fff}
+.btn-primary{background:var(--accent-dark)}.btn-primary:hover{background:#c07a50}
+.btn-add{background:rgba(212,149,110,0.15);color:var(--accent-dark);border:1px solid var(--accent)}.btn-add:hover{background:rgba(212,149,110,0.25)}
+.btn-success{background:var(--success)}.btn-danger{background:var(--danger)}
+.btn-sm{padding:5px 10px;font-size:11px;border:none;border-radius:6px;cursor:pointer;font-weight:600;color:#fff}
+.btn:disabled,.btn-sm:disabled{opacity:.5;cursor:not-allowed}
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:16px;padding:4px;background:#fff;border-radius:12px;border:1px solid var(--border);flex-wrap:wrap}
+.tab{padding:8px 16px;border:none;border-radius:8px;background:transparent;color:var(--text-dim);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
+.tab:hover{color:var(--text)}.tab.active{background:var(--accent-dark);color:#fff;font-weight:600}
+.tab-badge{background:var(--danger);color:#fff;padding:1px 6px;border-radius:6px;font-size:10px;font-weight:700;margin-left:4px}
+.tab.active .tab-badge{background:rgba(255,255,255,0.3)}
+.tab-content{display:none}.tab-content.active{display:block}
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 2px 6px rgba(0,0,0,0.03)}
+.stat-icon{font-size:24px;margin-bottom:8px}.stat-value{font-size:24px;font-weight:700}.stat-label{font-size:11px;color:var(--text-dim);margin-top:2px}
+/* Card & Table */
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:14px;box-shadow:0 2px 6px rgba(0,0,0,0.03)}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.card-title{font-size:15px;font-weight:700}.card-body{padding:16px}
 table{width:100%;border-collapse:collapse}
-th{padding:12px 16px;text-align:left;font-weight:600;color:#fff;font-size:12px;text-transform:uppercase;background:var(--accent)}
-td{padding:14px 16px;border-bottom:1px solid var(--border);color:var(--text)}
-tbody tr{transition:all .2s}tbody tr:hover{background:rgba(233,181,149,0.25)}
-.emp-name{font-weight:600;color:var(--text)}.emp-role{font-size:11px;color:var(--text-dim)}
-.hours-badge{display:inline-block;padding:4px 12px;border-radius:10px;font-weight:600;font-size:13px}
-.hours-badge.good{background:#d1fae5;color:#065f46}.hours-badge.ok{background:#fef3c7;color:#92400e}.hours-badge.low{background:#fee2e2;color:#991b1b}
-.pin-badge{background:var(--bg);padding:4px 10px;border-radius:8px;font-family:monospace;font-size:13px;color:var(--text-dim)}
-.status-badge{padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600}
-.status-badge.Active{background:#d1fae5;color:#065f46}.status-badge.Inactive{background:#fee2e2;color:#991b1b}
-.type-badge{padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600}
-.type-badge.Annual{background:#dbeafe;color:#1e40af}.type-badge.Personal{background:#ede9fe;color:#5b21b6}.type-badge.Medical{background:#fee2e2;color:#991b1b}
-.request-status{padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600}
-.request-status.Pending{background:#fef3c7;color:#92400e}.request-status.Approved{background:#d1fae5;color:#065f46}.request-status.Rejected{background:#fee2e2;color:#991b1b}
-.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
-.modal-overlay.active{display:flex}
-.modal{background:#fff;border:1px solid var(--border);border-radius:16px;width:90%;max-width:420px;max-height:90vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
-.modal-header{background:linear-gradient(135deg,var(--accent-dark),#c07a50);padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
-.modal-header h2{font-size:15px;color:#fff}
-.modal-close{width:36px;height:36px;border-radius:10px;border:none;background:rgba(255,255,255,0.25);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.modal-body{padding:16px 20px;max-height:calc(90vh - 80px);overflow-y:auto}
-.form-group{margin-bottom:12px}.form-label{display:block;font-weight:600;color:var(--text-dim);margin-bottom:4px;font-size:12px}
-.form-input,.form-select{width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:13px;background:#fff;color:var(--text);font-family:inherit}
-.form-input:focus,.form-select:focus{outline:none;border-color:var(--accent-dark)}
-.form-select option{background:#fff;color:var(--text)}.form-hint{font-size:11px;color:var(--text-dim);margin-top:4px}
-.btn-row{display:flex;gap:10px;margin-top:20px}
-.submit-btn{flex:1;padding:12px;background:var(--accent-dark);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}.submit-btn:disabled{opacity:.5}
-.cancel-btn{flex:1;padding:12px;background:var(--bg);color:var(--text-dim);border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
-.closure-item{display:flex;justify-content:space-between;align-items:center;padding:14px;background:#fef3c7;border:1px solid #fde68a;border-radius:var(--radius);margin-bottom:8px}
-.closure-info .closure-name{font-weight:600;color:#92400e;font-size:14px}.closure-info .closure-dates{font-size:12px;color:#b45309;margin-top:2px}
-.closure-delete{width:32px;height:32px;border-radius:8px;border:none;background:#fee2e2;color:#991b1b;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
-.empty-state{text-align:center;padding:40px;color:var(--text-dim)}.empty-state-icon{font-size:48px;opacity:.4;margin-bottom:12px}
-.loading{text-align:center;padding:40px}.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
-@keyframes spin{to{transform:rotate(360deg)}}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);padding:12px 24px;border-radius:var(--radius);font-weight:600;font-size:13px;z-index:2000;opacity:0;transition:all .3s;color:#fff}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.toast.success{background:var(--success)}.toast.error{background:var(--danger)}
-.mobile-menu-btn{display:none;position:fixed;top:16px;left:16px;width:44px;height:44px;border-radius:var(--radius);border:none;background:var(--accent-dark);color:#fff;font-size:20px;cursor:pointer;z-index:200;align-items:center;justify-content:center}
-@media(max-width:768px){.sidebar{transform:translateX(-100%);transition:transform .3s}.sidebar.open{transform:translateX(0)}.mobile-menu-btn{display:flex}.main{margin-left:0;padding:16px;padding-top:70px}.stats-grid{grid-template-columns:repeat(2,1fr)}table{display:block;overflow-x:auto}}
+th{padding:10px 14px;text-align:left;font-weight:600;color:#fff;font-size:11px;text-transform:uppercase;background:var(--accent)}
+td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px}
+tbody tr{transition:all .15s;cursor:pointer}tbody tr:hover{background:rgba(233,181,149,0.2)}
+.emp-name{font-weight:600}.emp-role{font-size:11px;color:var(--text-dim)}
 </style>
 </head>
 <body>
@@ -90,51 +59,235 @@ tbody tr{transition:all .2s}tbody tr:hover{background:rgba(233,181,149,0.25)}
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header"><div class="sidebar-logo"><img src="logo.png" alt="MIKAN" style="width:40px;height:40px;object-fit:contain"></div><div class="sidebar-title"><h1>MIKAN</h1><p>Admin Panel</p></div></div>
   <nav>
-    <div class="nav-item active" onclick="showSection('dashboard')" id="navDashboard"><span class="nav-icon">📊</span>Dashboard</div>
-    <div class="nav-item" onclick="showSection('employees')" id="navEmployees"><span class="nav-icon">👥</span>Employees</div>
-    <div class="nav-item" onclick="showSection('requests')" id="navRequests"><span class="nav-icon">🏖️</span>Time Off<span class="nav-badge" id="pendingBadge" style="display:none">0</span></div>
-    <div class="nav-item" onclick="showSection('closures')" id="navClosures"><span class="nav-icon">🔒</span>Closures</div>
+    <div class="nav-item active" onclick="showSection('hours')" id="navHours"><span class="nav-icon">📊</span>Employee Hours</div>
+    <div class="nav-item" onclick="showSection('timeoff')" id="navTimeoff"><span class="nav-icon">🏖️</span>Time Off<span class="nav-badge" id="pendingBadge" style="display:none">0</span></div>
+    <div class="nav-item" onclick="showSection('archive')" id="navArchive"><span class="nav-icon">📦</span>Annual Archive</div>
   </nav>
   <div class="sidebar-footer"><div class="admin-info"><div class="admin-name" id="adminName">Admin</div><div class="admin-role">Administrator</div></div><button class="logout-btn" onclick="logout()">🚪 Log Out</button></div>
 </div>
 <div class="main" id="mainContent"></div>
-<div class="modal-overlay" id="modalOverlay"><div class="modal"><div class="modal-header"><h2 id="modalTitle"></h2><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body" id="modalBody"></div></div></div>
-<div class="toast" id="toast"></div>
-<script>
-const API_URL='https://script.google.com/macros/s/AKfycbzNRsp18lbCt5rJrDFXHCZWCwRvBepq39lP-rmURbHxxWM0qwnFvXAnWp3V9eUZJX0y/exec';
-const USER=JSON.parse(sessionStorage.getItem('mikan_user')||'null');
-if(!USER||USER.role!=='admin')window.location.href='index.html';
-else document.getElementById('adminName').textContent=USER.name;
-const $=id=>document.getElementById(id);
-const showToast=(m,t='')=>{const e=$('toast');e.textContent=m;e.className=`toast ${t} show`;setTimeout(()=>e.classList.remove('show'),3000)};
-const HT={Annual:'Vacation',Personal:'Personal',Medical:'Sick Leave'};
-const S={section:'dashboard',year:new Date().getFullYear(),month:new Date().getMonth()+1,employees:[],dashboard:[],pending:[],closures:[],loaded:false,mk:''};
-async function api(d){return(await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(d)})).json();}
-function logout(){sessionStorage.removeItem('mikan_user');window.location.href='index.html';}
-async function loadAll(f){const k=`${S.year}-${S.month}`;if(S.loaded&&S.mk===k&&!f)return;try{const r=await api({action:'adminInit',year:String(S.year),month:String(S.month)});if(r.success){S.dashboard=r.dashboard;S.employees=r.employees;S.pending=r.pendingRequests;S.closures=r.closures;S.loaded=true;S.mk=k;updBadge(r.pendingRequests.length);}}catch(e){showToast('Error loading','error');}}
-function showSection(s){S.section=s;document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));$(`nav${s.charAt(0).toUpperCase()+s.slice(1)}`).classList.add('active');$('sidebar').classList.remove('open');render();}
-function render(){const m=$('mainContent');({dashboard:renderDash,employees:renderEmp,requests:renderReq,closures:renderClo})[S.section](m);}
-function openModal(t,h){$('modalTitle').textContent=t;$('modalBody').innerHTML=h;$('modalOverlay').classList.add('active');}
-function closeModal(){$('modalOverlay').classList.remove('active');}
-async function chgMonth(d){const n=new Date();if(d>0&&S.year===n.getFullYear()&&S.month===n.getMonth()+1)return;S.month+=d;if(S.month<1){S.month=12;S.year--;}else if(S.month>12){S.month=1;S.year++;}$('mainContent').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';await loadAll(true);render();}
-function mSel(){const d=new Date(S.year,S.month-1),n=new Date(),c=S.year===n.getFullYear()&&S.month===n.getMonth()+1;return`<div class="month-selector"><button class="month-nav-btn" onclick="chgMonth(-1)">‹</button><div class="month-display">${d.toLocaleDateString('en-US',{month:'long',year:'numeric'})}${c?'<span class="month-current">CURRENT</span>':''}</div><button class="month-nav-btn" onclick="chgMonth(1)" ${c?'disabled':''}>›</button></div>`;}
-function renderDash(m){const r=S.dashboard,te=r.length,th=r.reduce((s,e)=>s+e.monthHours,0),ah=te?th/te:0;m.innerHTML=`<div class="page-header"><div><div class="page-title">📊 Dashboard</div><div class="page-subtitle">Monthly hours overview</div></div><div style="display:flex;gap:8px">${mSel()}<button class="action-btn primary" onclick="exportCSV()">📥 Export</button><button class="action-btn primary" onclick="refreshAll()">🔄</button></div></div><div class="stats-grid"><div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">${te}</div><div class="stat-label">Employees</div></div><div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-value">${th.toFixed(1)}h</div><div class="stat-label">Total Hours</div></div><div class="stat-card"><div class="stat-icon">📊</div><div class="stat-value">${ah.toFixed(1)}h</div><div class="stat-label">Avg Hours</div></div><div class="stat-card"><div class="stat-icon">📋</div><div class="stat-value">${S.pending.length}</div><div class="stat-label">Pending Requests</div></div></div><div class="card"><div class="card-header"><span class="card-title">👥 Employee Hours</span></div><table><thead><tr><th>Employee</th><th>Role</th><th>Days</th><th>Hours</th></tr></thead><tbody>${r.map(e=>`<tr><td class="emp-name">${e.name}</td><td><span class="emp-role">${e.role}</span></td><td>${e.daysWorked}</td><td><span class="hours-badge ${e.monthHours>=150?'good':e.monthHours>=100?'ok':'low'}">${e.monthHours.toFixed(1)}h</span></td></tr>`).join('')}</tbody></table></div>`;}
-function renderEmp(m){m.innerHTML=`<div class="page-header"><div><div class="page-title">👥 Employees</div><div class="page-subtitle">Manage your team</div></div><button class="action-btn add" onclick="addEmp()">➕ Add Employee</button></div><div class="card"><table><thead><tr><th>Name</th><th>PIN</th><th>Role</th><th>Status</th><th>Vacation</th><th>Actions</th></tr></thead><tbody>${S.employees.map(e=>`<tr><td class="emp-name">${e.name}</td><td><span class="pin-badge">${e.pin}</span></td><td><span class="emp-role">${e.role}</span></td><td><span class="status-badge ${e.status}">${e.status}</span></td><td>${e.annualDays}d</td><td><button class="action-btn-sm approve" onclick="editEmp('${e.id}')">✏️</button> <button class="action-btn-sm reject" onclick="delEmp('${e.id}','${e.name}')">🗑️</button></td></tr>`).join('')}</tbody></table></div>`;}
-function renderReq(m){let h=`<div class="page-header"><div><div class="page-title">🏖️ Time Off Requests</div></div><button class="action-btn primary" onclick="refreshAll()">🔄 Refresh</button></div>`;if(!S.pending.length){m.innerHTML=h+'<div class="card"><div class="card-body"><div class="empty-state"><div class="empty-state-icon">✅</div><p>No pending requests</p></div></div></div>';return;}h+=`<div class="card"><table><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th><th>Actions</th></tr></thead><tbody>${S.pending.map(r=>`<tr><td class="emp-name">${r.employeeName}</td><td><span class="type-badge ${r.type}">${HT[r.type]||r.type}</span></td><td>${new Date(r.startDate).toLocaleDateString('en-US')}${r.startDate!==r.endDate?' - '+new Date(r.endDate).toLocaleDateString('en-US'):''}</td><td>${r.days}</td><td>${r.reason||'-'}</td><td><button class="action-btn-sm approve" onclick="actReq('${r.requestId}','approve')">✅</button> <button class="action-btn-sm reject" onclick="actReq('${r.requestId}','reject')">❌</button></td></tr>`).join('')}</tbody></table></div>`;m.innerHTML=h;}
-function renderClo(m){let h=`<div class="page-header"><div><div class="page-title">🔒 Restaurant Closures</div></div><button class="action-btn add" onclick="addClo()">➕ Add Closure</button></div>`;if(!S.closures.length){m.innerHTML=h+'<div class="card"><div class="card-body"><div class="empty-state"><div class="empty-state-icon">📅</div><p>No closures scheduled</p></div></div></div>';return;}S.closures.forEach(c=>{h+=`<div class="closure-item"><div class="closure-info"><div class="closure-name">${c.name}</div><div class="closure-dates">${new Date(c.startDate).toLocaleDateString('en-US')} - ${new Date(c.endDate).toLocaleDateString('en-US')}</div></div><button class="closure-delete" onclick="delClo('${c.closureId}')">🗑️</button></div>`;});m.innerHTML=h;}
-async function refreshAll(){$('mainContent').innerHTML='<div class="loading"><div class="spinner"></div><p>Refreshing...</p></div>';await loadAll(true);render();}
-function exportCSV(){const d=new Date(S.year,S.month-1);const month=d.toLocaleDateString('en-US',{month:'long',year:'numeric'});let csv='Name,Role,Days Worked,Hours\n';S.dashboard.forEach(e=>{csv+=`"${e.name}","${e.role}",${e.daysWorked},${e.monthHours.toFixed(2)}\n`;});const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`MIKAN_Hours_${S.year}-${String(S.month).padStart(2,'0')}.csv`;a.click();URL.revokeObjectURL(url);showToast('CSV exported','success');}
-function addEmp(){openModal('➕ Add Employee',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="form-group"><label class="form-label">Name *</label><input type="text" id="nN" class="form-input" placeholder="JOHN"></div><div class="form-group"><label class="form-label">PIN</label><input type="text" id="nP" class="form-input" placeholder="Auto" maxlength="4"></div><div class="form-group"><label class="form-label">Role</label><select id="nR" class="form-select"><option value="employee">Employee</option><option value="admin">Admin</option></select></div><div class="form-group"><label class="form-label">Annual Hours</label><input type="number" id="nH" class="form-input" value="1776"></div><div class="form-group"><label class="form-label">Vacation</label><input type="number" id="nA" class="form-input" value="30"></div><div class="form-group"><label class="form-label">Personal</label><input type="number" id="nPD" class="form-input" value="2"></div></div><div class="btn-row"><button class="cancel-btn" onclick="closeModal()">Cancel</button><button class="submit-btn" onclick="saveAdd()">➕ Add</button></div>`);}
-async function saveAdd(){const n=$('nN').value.trim();if(!n)return showToast('Name required','error');const btn=document.querySelector('#modalBody .submit-btn');btn.disabled=true;btn.textContent='⏳ Adding...';try{const r=await api({action:'addEmployee',name:n,pin:$('nP').value||'',role:$('nR').value,annualDays:$('nA').value,personalDays:$('nPD').value,expectedHours:$('nH').value});if(r.success){showToast(r.message,'success');closeModal();await loadAll(true);render();}else{showToast(r.message,'error');btn.disabled=false;btn.textContent='➕ Add';}}catch(e){showToast('Error','error');btn.disabled=false;btn.textContent='➕ Add';}}
-function editEmp(id){const e=S.employees.find(x=>x.id===id);if(!e)return;openModal('✏️ Edit Employee',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="form-group"><label class="form-label">Name</label><input type="text" id="eN" class="form-input" value="${e.name}"></div><div class="form-group"><label class="form-label">PIN</label><input type="text" id="eP" class="form-input" value="${e.pin}" maxlength="4"></div><div class="form-group"><label class="form-label">Role</label><select id="eR" class="form-select"><option value="employee" ${e.role==='employee'?'selected':''}>Employee</option><option value="admin" ${e.role==='admin'?'selected':''}>Admin</option></select></div><div class="form-group"><label class="form-label">Status</label><select id="eS" class="form-select"><option value="Active" ${e.status==='Active'?'selected':''}>Active</option><option value="Inactive" ${e.status==='Inactive'?'selected':''}>Inactive</option></select></div><div class="form-group"><label class="form-label">Vacation</label><input type="number" id="eA" class="form-input" value="${e.annualDays}"></div><div class="form-group"><label class="form-label">Personal</label><input type="number" id="ePD" class="form-input" value="${e.personalDays}"></div><div class="form-group"><label class="form-label">Annual Hours</label><input type="number" id="eH" class="form-input" value="${e.expectedHours}"></div><div class="form-group"><label class="form-label">Medical Hours</label><input type="number" id="eMH" class="form-input" value="${e.medicalHours||20}"></div></div><div class="btn-row"><button class="cancel-btn" onclick="closeModal()">Cancel</button><button class="submit-btn" onclick="saveEdit('${id}')">💾 Save</button></div>`);}
-async function saveEdit(id){const btn=document.querySelector('#modalBody .submit-btn');btn.disabled=true;btn.textContent='⏳ Saving...';try{const r=await api({action:'editEmployee',id,name:$('eN').value,pin:$('eP').value,role:$('eR').value,status:$('eS').value,annualDays:$('eA').value,personalDays:$('ePD').value,expectedHours:$('eH').value,medicalHours:$('eMH').value});if(r.success){showToast('Updated','success');closeModal();await loadAll(true);render();}else{showToast(r.message,'error');btn.disabled=false;btn.textContent='💾 Save';}}catch(e){showToast('Error','error');btn.disabled=false;btn.textContent='💾 Save';}}
-async function delEmp(id,n){if(!confirm(`Delete ${n}?`))return;try{const r=await api({action:'deleteEmployee',employee:id});if(r.success){showToast('Deleted','success');await loadAll(true);render();}else showToast(r.message,'error');}catch(e){showToast('Error','error');}}
-async function actReq(id,a){try{const r=await api({action:a==='approve'?'approveHoliday':'rejectHoliday',requestId:id});if(r.success){showToast(`Request ${a}d`,'success');await loadAll(true);render();}else showToast(r.message,'error');}catch(e){showToast('Error','error');}}
-function addClo(){openModal('➕ Add Closure',`<div class="form-group"><label class="form-label">Name</label><input type="text" id="cN" class="form-input" placeholder="e.g., New Year's Day"></div><div class="form-group"><label class="form-label">Start Date</label><input type="date" id="cS" class="form-input"></div><div class="form-group"><label class="form-label">End Date</label><input type="date" id="cE" class="form-input"></div><div class="btn-row"><button class="cancel-btn" onclick="closeModal()">Cancel</button><button class="submit-btn" onclick="saveClo()">➕ Add</button></div>`);}
-async function saveClo(){const n=$('cN').value,s=$('cS').value,e=$('cE').value;if(!n||!s||!e)return showToast('All fields required','error');try{const r=await api({action:'addClosure',name:n,startDate:s,endDate:e});if(r.success){showToast('Added','success');closeModal();await loadAll(true);render();}else showToast(r.message,'error');}catch(e){showToast('Error','error');}}
-async function delClo(id){if(!confirm('Delete?'))return;try{const r=await api({action:'deleteClosure',closureId:id});if(r.success){showToast('Deleted','success');await loadAll(true);render();}else showToast(r.message,'error');}catch(e){showToast('Error','error');}}
-function updBadge(c){const b=$('pendingBadge');if(c>0){b.textContent=c;b.style.display='inline';}else b.style.display='none';}
-window.onload=async()=>{if(!USER)return;$('mainContent').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';await loadAll();render();};
-</script>
 </body>
 </html>
+
+<style>
+.badge{display:inline-block;padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600}
+.badge-good{background:#d1fae5;color:#065f46}.badge-warn{background:#fef3c7;color:#92400e}.badge-bad{background:#fee2e2;color:#991b1b}
+.badge-active{background:#d1fae5;color:#065f46}.badge-inactive{background:#fee2e2;color:#991b1b}
+.badge-annual{background:#dbeafe;color:#1e40af}.badge-personal{background:#ede9fe;color:#5b21b6}.badge-medical{background:#fee2e2;color:#991b1b}.badge-medappt{background:#fef3c7;color:#92400e}
+.badge-pending{background:#fef3c7;color:#92400e}.badge-approved{background:#d1fae5;color:#065f46}.badge-rejected{background:#fee2e2;color:#991b1b}
+.pin-badge{background:var(--bg);padding:3px 8px;border-radius:6px;font-family:monospace;font-size:12px;color:var(--text-dim)}
+.month-sel{display:flex;align-items:center;gap:6px;background:#fff;padding:4px;border-radius:var(--radius);border:1px solid var(--border)}
+.month-btn{width:32px;height:32px;border:none;border-radius:8px;background:var(--bg);cursor:pointer;font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;justify-content:center}
+.month-btn:hover{background:var(--accent)}.month-btn:disabled{opacity:.3;cursor:not-allowed}
+.month-lbl{min-width:130px;text-align:center;font-weight:700;font-size:13px}
+.month-cur{background:var(--accent-dark);color:#fff;padding:1px 6px;border-radius:6px;font-size:9px;font-weight:700;margin-left:4px}
+.search-input{padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;width:180px}
+.search-input:focus{outline:none;border-color:var(--accent-dark)}
+/* Modal */
+.modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.modal-bg.active{display:flex}
+.modal{background:#fff;border:1px solid var(--border);border-radius:16px;width:90%;max-width:480px;max-height:90vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+.modal-lg{max-width:800px}
+.modal-hd{background:linear-gradient(135deg,var(--accent-dark),#c07a50);padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
+.modal-hd h2{font-size:15px;color:#fff}
+.modal-x{width:32px;height:32px;border-radius:8px;border:none;background:rgba(255,255,255,0.25);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-bd{padding:16px;max-height:calc(90vh - 60px);overflow-y:auto}
+.fg{margin-bottom:12px}.fl{display:block;font-weight:600;color:var(--text-dim);margin-bottom:4px;font-size:12px}
+.fi,.fs{width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-size:13px;background:#fff;color:var(--text);font-family:inherit}
+.fi:focus,.fs:focus{outline:none;border-color:var(--accent-dark)}
+.fs option{background:#fff;color:var(--text)}
+.btn-row{display:flex;gap:8px;margin-top:16px}
+.btn-save{flex:1;padding:10px;background:var(--accent-dark);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}.btn-save:disabled{opacity:.5}
+.btn-cancel{flex:1;padding:10px;background:var(--bg);color:var(--text-dim);border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
+/* Closure */
+.closure-item{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#fef3c7;border:1px solid #fde68a;border-radius:10px;margin-bottom:6px}
+.closure-name{font-weight:600;color:#92400e;font-size:13px}.closure-dates{font-size:11px;color:#b45309;margin-top:1px}
+.closure-del{width:28px;height:28px;border-radius:6px;border:none;background:#fee2e2;color:#991b1b;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+/* Paid hours */
+.paid-item{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#d1fae5;border-left:3px solid var(--success);border-radius:10px;margin-bottom:6px}
+.paid-info .paid-name{font-weight:600;color:#065f46;font-size:13px}.paid-info .paid-detail{font-size:11px;color:#047857}
+.paid-hrs{font-size:18px;font-weight:700;color:#065f46;margin-right:10px}
+/* Calendar */
+.cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.cal-title{font-size:16px;font-weight:700}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-hdr{text-align:center;font-size:10px;font-weight:700;color:var(--text-dim);padding:6px}
+.cal-cell{aspect-ratio:1.2;border:2px solid var(--border);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;background:#fff;font-size:13px}
+.cal-cell:hover:not(.empty){border-color:var(--accent-dark);background:rgba(233,181,149,0.15)}
+.cal-cell.empty{border:none;cursor:default;background:transparent}
+.cal-cell.today{border-color:var(--accent-dark);box-shadow:0 0 0 2px rgba(212,149,110,0.3)}
+.cal-cell.has-data{background:var(--accent);border-color:var(--accent)}
+.cal-day{font-weight:700}.cal-sub{font-size:9px;color:var(--text-dim);margin-top:1px}
+.cal-cell.has-data .cal-sub{color:var(--text)}
+/* Day detail */
+.day-hrs{background:linear-gradient(135deg,var(--accent-dark),#c07a50);color:#fff;padding:16px;border-radius:var(--radius);text-align:center;margin-bottom:14px}
+.day-hrs-val{font-size:32px;font-weight:700}.day-hrs-lbl{font-size:12px;opacity:.8;margin-top:4px}
+.day-punch{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border-radius:10px;margin-bottom:6px;border-left:3px solid}
+.day-punch.in{border-color:var(--success)}.day-punch.out{border-color:var(--warning)}
+.punch-type{padding:3px 10px;border-radius:8px;font-size:10px;font-weight:700}
+.punch-type.in{background:#d1fae5;color:#065f46}.punch-type.out{background:#fef3c7;color:#92400e}
+.punch-time-lg{font-size:18px;font-weight:700}
+/* Empty & Loading */
+.empty{text-align:center;padding:30px;color:var(--text-dim)}.empty-icon{font-size:40px;opacity:.4;margin-bottom:8px}
+.loading{text-align:center;padding:30px}.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);padding:10px 20px;border-radius:var(--radius);font-weight:600;font-size:12px;z-index:2000;opacity:0;transition:all .3s;color:#fff}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.toast.success{background:var(--success)}.toast.error{background:var(--danger)}
+.mobile-menu-btn{display:none;position:fixed;top:16px;left:16px;width:44px;height:44px;border-radius:var(--radius);border:none;background:var(--accent-dark);color:#fff;font-size:20px;cursor:pointer;z-index:200;align-items:center;justify-content:center}
+@media(max-width:768px){.sidebar{transform:translateX(-100%);transition:transform .3s}.sidebar.open{transform:translateX(0)}.mobile-menu-btn{display:flex}.main{margin-left:0;padding:14px;padding-top:70px}.stats-grid{grid-template-columns:repeat(2,1fr)}table{display:block;overflow-x:auto}.cal-cell{font-size:11px}}
+</style>
+<div class="modal-bg" id="modalBg"><div class="modal" id="modal"><div class="modal-hd"><h2 id="mTitle"></h2><button class="modal-x" onclick="closeModal()">✕</button></div><div class="modal-bd" id="mBody"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API='https://script.google.com/macros/s/AKfycbzNRsp18lbCt5rJrDFXHCZWCwRvBepq39lP-rmURbHxxWM0qwnFvXAnWp3V9eUZJX0y/exec';
+const U=JSON.parse(sessionStorage.getItem('mikan_user')||'null');
+if(!U||U.role!=='admin')window.location.href='index.html';
+else document.getElementById('adminName').textContent=U.name;
+const $=id=>document.getElementById(id);
+const toast=(m,t='')=>{const e=$('toast');e.textContent=m;e.className=`toast ${t} show`;setTimeout(()=>e.classList.remove('show'),3000)};
+const HT={Annual:'Vacation',Personal:'Personal',Medical:'Sick Leave',MedAppt:'Med. Visit'};
+async function api(d){return(await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(d)})).json();}
+function logout(){sessionStorage.removeItem('mikan_user');window.location.href='index.html';}
+
+const S={sec:'hours',yr:new Date().getFullYear(),mo:new Date().getMonth()+1,emps:[],dash:[],pending:[],closures:[],paidHrs:[],loaded:false,mk:'',search:'',selEmp:null,calDate:null,empPunched:{}};
+
+async function loadAll(f){const k=`${S.yr}-${S.mo}`;if(S.loaded&&S.mk===k&&!f)return;try{const r=await api({action:'adminInit',year:String(S.yr),month:String(S.mo)});if(r.success){S.dash=r.dashboard;S.emps=r.employees;S.pending=r.pendingRequests;S.closures=r.closures;S.loaded=true;S.mk=k;updBadge();}}catch(e){toast('Error loading','error');}}
+function updBadge(){const b=$('pendingBadge'),c=S.pending.length;if(c>0){b.textContent=c;b.style.display='inline';}else b.style.display='none';}
+
+function showSection(s){S.sec=s;document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));$(`nav${s.charAt(0).toUpperCase()+s.slice(1)}`).classList.add('active');$('sidebar').classList.remove('open');render();}
+function render(){const m=$('mainContent');({hours:renderHours,timeoff:renderTimeoff,archive:renderArchive})[S.sec](m);}
+function openModal(t,h,lg){$('mTitle').textContent=t;$('mBody').innerHTML=h;$('modal').className=lg?'modal modal-lg':'modal';$('modalBg').classList.add('active');}
+function closeModal(){$('modalBg').classList.remove('active');}
+
+function mSel(){const d=new Date(S.yr,S.mo-1),n=new Date(),c=S.yr===n.getFullYear()&&S.mo===n.getMonth()+1;return`<div class="month-sel"><button class="month-btn" onclick="chgMo(-1)">‹</button><div class="month-lbl">${d.toLocaleDateString('en-US',{month:'long',year:'numeric'})}${c?'<span class="month-cur">NOW</span>':''}</div><button class="month-btn" onclick="chgMo(1)" ${c?'disabled':''}>›</button></div>`;}
+async function chgMo(d){const n=new Date();if(d>0&&S.yr===n.getFullYear()&&S.mo===n.getMonth()+1)return;S.mo+=d;if(S.mo<1){S.mo=12;S.yr--;}else if(S.mo>12){S.mo=1;S.yr++;}$('mainContent').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';await loadAll(true);render();}
+async function refresh(){$('mainContent').innerHTML='<div class="loading"><div class="spinner"></div><p>Refreshing...</p></div>';await loadAll(true);render();}
+</script>
+
+<script>
+// ===== HOURS SECTION =====
+function renderHours(m){
+  const r=S.dash,te=r.length,th=r.reduce((s,e)=>s+e.monthHours,0),ah=te?th/te:0;
+  let h=`<div class="page-header"><div><div class="page-title">📊 Employee Hours</div></div><div style="display:flex;gap:6px;flex-wrap:wrap">${mSel()}<button class="btn btn-primary" onclick="exportCSV()">📥 Export</button><button class="btn btn-primary" onclick="refresh()">🔄</button></div></div>`;
+  h+=`<div class="stats-grid"><div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">${te}</div><div class="stat-label">Employees</div></div><div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-value">${th.toFixed(1)}h</div><div class="stat-label">Total Hours</div></div><div class="stat-card"><div class="stat-icon">📊</div><div class="stat-value">${ah.toFixed(1)}h</div><div class="stat-label">Avg Hours</div></div><div class="stat-card"><div class="stat-icon">📋</div><div class="stat-value">${S.pending.length}</div><div class="stat-label">Pending</div></div></div>`;
+  h+=`<div class="tabs" id="hrTabs"><button class="tab active" onclick="hrTab('empTab')">👥 Employees</button><button class="tab" onclick="hrTab('paidTab')">💰 Paid Hours</button><button class="tab" onclick="hrTab('freezeTab')">🔒 Freeze</button></div>`;
+  h+=`<div id="empTab" class="tab-content active"></div><div id="paidTab" class="tab-content"></div><div id="freezeTab" class="tab-content"></div>`;
+  m.innerHTML=h;
+  renderEmpTable();renderPaidTab();renderFreezeTab();
+}
+function hrTab(id){document.querySelectorAll('#hrTabs .tab').forEach((t,i)=>t.classList.toggle('active',['empTab','paidTab','freezeTab'][i]===id));['empTab','paidTab','freezeTab'].forEach(t=>{const el=$(t);if(el)el.classList.toggle('active',t===id);});}
+
+function renderEmpTable(){
+  const el=$('empTab');if(!el)return;
+  let h=`<div class="card"><div class="card-header"><div style="display:flex;align-items:center;gap:8px"><span class="card-title">👥 All Employees</span><button class="btn btn-add" onclick="addEmp()" style="padding:5px 12px;font-size:12px">➕ Add</button></div><input type="text" class="search-input" placeholder="🔍 Search..." oninput="S.search=this.value.toLowerCase();renderEmpTable()"></div><table><thead><tr><th>Employee</th><th>Role</th><th>Days</th><th>Hours</th><th></th></tr></thead><tbody>`;
+  const filtered=S.dash.filter(e=>!S.search||e.name.toLowerCase().includes(S.search));
+  filtered.forEach(e=>{const cls=e.monthHours>=150?'good':e.monthHours>=100?'warn':'bad';h+=`<tr onclick="openEmpCal('${e.id}','${e.name}')"><td class="emp-name">${e.name}</td><td><span class="emp-role">${e.role}</span></td><td>${e.daysWorked}</td><td><span class="badge badge-${cls}">${e.monthHours.toFixed(1)}h</span></td><td><button class="btn-sm btn-primary" onclick="event.stopPropagation();editEmp('${e.id}')" style="background:var(--accent-dark)">✏️</button></td></tr>`;});
+  h+='</tbody></table></div>';el.innerHTML=h;
+}
+
+function renderPaidTab(){const el=$('paidTab');if(!el)return;el.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">💰 Paid Hours</span><button class="btn btn-add" onclick="addPaidHrs()">➕ Add</button></div><div class="card-body"><div class="empty"><div class="empty-icon">💰</div><p>No paid hours recorded yet</p></div></div></div>`;}
+function renderFreezeTab(){const el=$('freezeTab');if(!el)return;el.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">🔒 Freeze Punches</span></div><div class="card-body"><p style="color:var(--text-dim);font-size:13px">Freeze a date range to prevent employees from editing their punches.</p><div style="margin-top:12px"><button class="btn btn-danger" onclick="toast('Freeze feature coming soon','')">🔒 Freeze Current Month</button></div></div></div>`;}
+
+function addPaidHrs(){openModal('➕ Add Paid Hours',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Employee</label><select id="phEmp" class="fs">${S.emps.map(e=>`<option value="${e.id}">${e.name}</option>`).join('')}</select></div><div class="fg"><label class="fl">Hours</label><input type="number" id="phHrs" class="fi" value="1" min="0.5" step="0.5"></div><div class="fg"><label class="fl">Date</label><input type="date" id="phDate" class="fi"></div><div class="fg"><label class="fl">Notes</label><input type="text" id="phNotes" class="fi" placeholder="Optional"></div></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="toast('Paid hours feature coming soon','')">➕ Add</button></div>`);}
+
+// Employee Calendar Modal
+async function openEmpCal(id,name){
+  S.selEmp={id,name};S.calDate=new Date(S.yr,S.mo-1,1);
+  openModal(`📅 ${name}`,'<div class="loading"><div class="spinner"></div></div>',true);
+  await loadEmpCal();
+}
+async function loadEmpCal(){
+  const y=S.calDate.getFullYear(),m=S.calDate.getMonth()+1;
+  try{const r=await api({action:'getPunchedDays',employee:S.selEmp.id,year:String(y),month:String(m)});S.empPunched=r.success?r.days:{};}catch(e){S.empPunched={};}
+  renderEmpCal();
+}
+function renderEmpCal(){
+  const y=S.calDate.getFullYear(),m=S.calDate.getMonth(),first=new Date(y,m,1),last=new Date(y,m+1,0),start=first.getDay();
+  const now=new Date(),isCur=y===now.getFullYear()&&m===now.getMonth();
+  let h=`<div class="cal-nav"><button class="month-btn" onclick="calMo(-1)">‹</button><span class="cal-title">${S.calDate.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</span><button class="month-btn" onclick="calMo(1)" ${isCur?'disabled':''}>›</button></div><div class="cal-grid">`;
+  ['S','M','T','W','T','F','S'].forEach(d=>h+=`<div class="cal-hdr">${d}</div>`);
+  for(let i=0;i<start;i++)h+='<div class="cal-cell empty"></div>';
+  for(let d=1;d<=last.getDate();d++){
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const p=S.empPunched[ds];const has=p&&p.count>0;
+    const isT=y===now.getFullYear()&&m===now.getMonth()&&d===now.getDate();
+    h+=`<div class="cal-cell${has?' has-data':''}${isT?' today':''}" onclick="openDayDetail('${ds}')"><div class="cal-day">${d}</div>${has?`<div class="cal-sub">${p.count} punches</div>`:''}</div>`;
+  }
+  h+='</div>';$('mBody').innerHTML=h;
+}
+function calMo(d){S.calDate.setMonth(S.calDate.getMonth()+d);loadEmpCal();}
+async function openDayDetail(date){
+  $('mBody').innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  try{
+    const r=await api({action:'getEmployeeDetail',employee:S.selEmp.id,year:String(S.yr),month:String(S.mo)});
+    const punches=(r.success&&r.days[date])||[];
+    let mins=0;const sorted=[...punches].sort((a,b)=>a.time.localeCompare(b.time));
+    for(let i=0;i<sorted.length-1;i+=2)if(sorted[i].punchType==='IN'&&sorted[i+1]?.punchType==='OUT'){const[ih,im]=sorted[i].time.split(':').map(Number),[oh,om]=sorted[i+1].time.split(':').map(Number);const d=(oh*60+om)-(ih*60+im);if(d>0)mins+=d;}
+    const hrs=mins/60;const dt=new Date(date);
+    let h=`<button class="btn btn-primary" onclick="loadEmpCal()" style="margin-bottom:12px">← Back to Calendar</button>`;
+    h+=`<div class="day-hrs"><div class="day-hrs-val">${hrs.toFixed(2)}h</div><div class="day-hrs-lbl">${dt.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div></div>`;
+    if(!punches.length)h+='<div class="empty"><div class="empty-icon">🕐</div><p>No punches</p></div>';
+    else sorted.forEach(p=>{h+=`<div class="day-punch ${p.punchType.toLowerCase()}"><div style="display:flex;align-items:center;gap:10px"><span class="punch-type ${p.punchType.toLowerCase()}">${p.punchType}</span><span class="punch-time-lg">${p.time}</span></div></div>`;});
+    $('mBody').innerHTML=h;
+  }catch(e){$('mBody').innerHTML='<p>Error loading</p>';}
+}
+
+function exportCSV(){let csv='Name,Role,Days Worked,Hours\n';S.dash.forEach(e=>{csv+=`"${e.name}","${e.role}",${e.daysWorked},${e.monthHours.toFixed(2)}\n`;});const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`MIKAN_${S.yr}-${String(S.mo).padStart(2,'0')}.csv`;a.click();URL.revokeObjectURL(url);toast('Exported','success');}
+</script>
+
+<script>
+// ===== TIME OFF SECTION =====
+function renderTimeoff(m){
+  let h=`<div class="page-header"><div><div class="page-title">🏖️ Time Off</div></div><button class="btn btn-primary" onclick="refresh()">🔄 Refresh</button></div>`;
+  h+=`<div class="tabs" id="toTabs"><button class="tab active" onclick="toTab('reqTab')">📋 Requests <span class="tab-badge" id="reqBadge">${S.pending.length||''}</span></button><button class="tab" onclick="toTab('ovTab')">📊 Overview</button><button class="tab" onclick="toTab('calTab')">📅 Calendar</button><button class="tab" onclick="toTab('cloTab')">🗓️ Closures</button></div>`;
+  h+=`<div id="reqTab" class="tab-content active"></div><div id="ovTab" class="tab-content"></div><div id="calTab" class="tab-content"></div><div id="cloTab" class="tab-content"></div>`;
+  m.innerHTML=h;renderReqTab();renderOvTab();renderCalTab();renderCloTab();
+}
+function toTab(id){const tabs=['reqTab','ovTab','calTab','cloTab'];document.querySelectorAll('#toTabs .tab').forEach((t,i)=>t.classList.toggle('active',tabs[i]===id));tabs.forEach(t=>{const el=$(t);if(el)el.classList.toggle('active',t===id);});}
+
+function renderReqTab(){
+  const el=$('reqTab');if(!el)return;
+  if(!S.pending.length){el.innerHTML='<div class="card"><div class="card-body"><div class="empty"><div class="empty-icon">✅</div><p>No pending requests</p></div></div></div>';return;}
+  let h=`<div class="card"><table><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th><th>Actions</th></tr></thead><tbody>`;
+  S.pending.forEach(r=>{h+=`<tr><td class="emp-name">${r.employeeName}</td><td><span class="badge badge-${r.type.toLowerCase()}">${HT[r.type]||r.type}</span></td><td>${new Date(r.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric'})}${r.startDate!==r.endDate?' - '+new Date(r.endDate).toLocaleDateString('en-US',{month:'short',day:'numeric'}):''}</td><td>${r.days}</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.reason||'-'}</td><td><button class="btn-sm btn-success" onclick="actReq('${r.requestId}','approve')">✅</button> <button class="btn-sm btn-danger" onclick="actReq('${r.requestId}','reject')">❌</button></td></tr>`;});
+  h+='</tbody></table></div>';el.innerHTML=h;
+}
+
+function renderOvTab(){
+  const el=$('ovTab');if(!el)return;
+  el.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">📊 Holiday Overview</span></div><table><thead><tr><th>Employee</th><th>Vacation</th><th>Personal</th><th>Sick</th><th>Med. Visit</th></tr></thead><tbody>${S.emps.filter(e=>e.status==='Active').map(e=>`<tr><td class="emp-name">${e.name}</td><td>0/${e.annualDays}</td><td>0/${e.personalDays}</td><td>0</td><td>0h/${e.medicalHours||20}h</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function renderCalTab(){const el=$('calTab');if(!el)return;el.innerHTML='<div class="card"><div class="card-body"><div class="empty"><div class="empty-icon">📅</div><p>Calendar view — coming soon</p></div></div></div>';}
+
+function renderCloTab(){
+  const el=$('cloTab');if(!el)return;
+  let h=`<div class="card"><div class="card-header"><span class="card-title">🗓️ Closures & Holidays</span><button class="btn btn-add" onclick="addClo()">➕ Add</button></div><div class="card-body">`;
+  if(!S.closures.length)h+='<div class="empty"><div class="empty-icon">📅</div><p>No closures</p></div>';
+  else S.closures.forEach(c=>{h+=`<div class="closure-item"><div><div class="closure-name">${c.name}</div><div class="closure-dates">${new Date(c.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric'})} - ${new Date(c.endDate).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div></div><button class="closure-del" onclick="delClo('${c.closureId}')">🗑️</button></div>`;});
+  h+='</div></div>';el.innerHTML=h;
+}
+
+// ===== ARCHIVE SECTION =====
+function renderArchive(m){
+  m.innerHTML=`<div class="page-header"><div><div class="page-title">📦 Annual Archive</div><div class="page-subtitle">Archive past year data</div></div></div><div class="card"><div class="card-body"><p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">Move punches and time off requests from a past year to archive sheets.</p><div class="fg"><label class="fl">Year to Archive</label><select id="archYr" class="fs"><option value="${new Date().getFullYear()-1}">${new Date().getFullYear()-1}</option></select></div><div style="background:#fef3c7;border-left:3px solid var(--warning);padding:10px 12px;border-radius:0 8px 8px 0;margin:12px 0;font-size:12px;color:#92400e"><strong>⚠️ Backup first.</strong> Data will be moved to archive sheets.</div><button class="btn btn-primary" onclick="toast('Archive feature coming soon','')">📦 Archive Year</button></div></div>`;
+}
+
+// ===== EMPLOYEE MANAGEMENT =====
+function addEmp(){openModal('➕ Add Employee',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Name *</label><input type="text" id="nN" class="fi" placeholder="JOHN"></div><div class="fg"><label class="fl">PIN</label><input type="text" id="nP" class="fi" placeholder="Auto" maxlength="4"></div><div class="fg"><label class="fl">Role</label><select id="nR" class="fs"><option value="employee">Employee</option><option value="admin">Admin</option></select></div><div class="fg"><label class="fl">Annual Hours</label><input type="number" id="nH" class="fi" value="1776"></div><div class="fg"><label class="fl">Vacation</label><input type="number" id="nA" class="fi" value="30"></div><div class="fg"><label class="fl">Personal</label><input type="number" id="nPD" class="fi" value="2"></div></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveAdd()">➕ Add</button></div>`);}
+async function saveAdd(){const n=$('nN').value.trim();if(!n)return toast('Name required','error');const btn=document.querySelector('#mBody .btn-save');btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'addEmployee',name:n,pin:$('nP').value||'',role:$('nR').value,annualDays:$('nA').value,personalDays:$('nPD').value,expectedHours:$('nH').value});if(r.success){toast(r.message,'success');closeModal();await loadAll(true);render();}else{toast(r.message,'error');btn.disabled=false;btn.textContent='➕ Add';}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='➕ Add';}}
+
+function editEmp(id){const e=S.emps.find(x=>x.id===id);if(!e)return;openModal('✏️ Edit Employee',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Name</label><input type="text" id="eN" class="fi" value="${e.name}"></div><div class="fg"><label class="fl">PIN</label><input type="text" id="eP" class="fi" value="${e.pin}" maxlength="4"></div><div class="fg"><label class="fl">Role</label><select id="eR" class="fs"><option value="employee" ${e.role==='employee'?'selected':''}>Employee</option><option value="admin" ${e.role==='admin'?'selected':''}>Admin</option></select></div><div class="fg"><label class="fl">Status</label><select id="eS" class="fs"><option value="Active" ${e.status==='Active'?'selected':''}>Active</option><option value="Inactive" ${e.status==='Inactive'?'selected':''}>Inactive</option></select></div><div class="fg"><label class="fl">Vacation</label><input type="number" id="eA" class="fi" value="${e.annualDays}"></div><div class="fg"><label class="fl">Personal</label><input type="number" id="ePD" class="fi" value="${e.personalDays}"></div><div class="fg"><label class="fl">Annual Hours</label><input type="number" id="eH" class="fi" value="${e.expectedHours}"></div><div class="fg"><label class="fl">Medical Hours</label><input type="number" id="eMH" class="fi" value="${e.medicalHours||20}"></div></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveEdit('${id}')">💾 Save</button></div>`);}
+async function saveEdit(id){const btn=document.querySelector('#mBody .btn-save');btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'editEmployee',id,name:$('eN').value,pin:$('eP').value,role:$('eR').value,status:$('eS').value,annualDays:$('eA').value,personalDays:$('ePD').value,expectedHours:$('eH').value,medicalHours:$('eMH').value});if(r.success){toast('Updated','success');closeModal();await loadAll(true);render();}else{toast(r.message,'error');btn.disabled=false;btn.textContent='💾 Save';}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='💾 Save';}}
+async function delEmp(id,n){if(!confirm(`Delete ${n}?`))return;try{const r=await api({action:'deleteEmployee',employee:id});if(r.success){toast('Deleted','success');await loadAll(true);render();}else toast(r.message,'error');}catch(e){toast('Error','error');}}
+
+// ===== TIME OFF ACTIONS =====
+async function actReq(id,a){try{const r=await api({action:a==='approve'?'approveHoliday':'rejectHoliday',requestId:id});if(r.success){toast(`Request ${a}d`,'success');await loadAll(true);render();}else toast(r.message,'error');}catch(e){toast('Error','error');}}
+function addClo(){openModal('➕ Add Closure',`<div class="fg"><label class="fl">Name</label><input type="text" id="cN" class="fi" placeholder="e.g., New Year's Day"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Start</label><input type="date" id="cS" class="fi"></div><div class="fg"><label class="fl">End</label><input type="date" id="cE" class="fi"></div></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveClo()">➕ Add</button></div>`);}
+async function saveClo(){const n=$('cN').value,s=$('cS').value,e=$('cE').value;if(!n||!s||!e)return toast('All fields required','error');try{const r=await api({action:'addClosure',name:n,startDate:s,endDate:e});if(r.success){toast('Added','success');closeModal();await loadAll(true);render();}else toast(r.message,'error');}catch(e){toast('Error','error');}}
+async function delClo(id){if(!confirm('Delete?'))return;try{const r=await api({action:'deleteClosure',closureId:id});if(r.success){toast('Deleted','success');await loadAll(true);render();}else toast(r.message,'error');}catch(e){toast('Error','error');}}
+
+// ===== INIT =====
+window.onload=async()=>{if(!U)return;$('mainContent').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';await loadAll();render();};
+</script>
