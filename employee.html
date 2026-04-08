@@ -36,7 +36,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tab-content.active{display:block}
 
 /* Cards */
-.card{background:#fff;border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+.card{background:#fff;border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.04);overflow:hidden;width:100%}
 
 /* Date Nav */
 .date-nav{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -93,8 +93,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .delete-confirm-btn.no{background:var(--bg);color:var(--text-dim)}
 
 /* Hours Card */
-.hours-card{background:linear-gradient(135deg,var(--accent-dark),#c07a50);border-radius:var(--radius);padding:14px;text-align:center;margin-top:12px}
-.hours-value{font-size:32px;font-weight:800;color:#fff}
+.hours-card{background:linear-gradient(135deg,var(--accent-dark),#c07a50);border-radius:var(--radius);padding:14px;text-align:center;margin-top:12px;width:100%;overflow:hidden}
+.hours-value{font-size:28px;font-weight:800;color:#fff;word-break:break-all}
 .hours-label{font-size:11px;color:rgba(255,255,255,0.7);margin-top:4px;text-transform:uppercase}
 
 /* Empty State */
@@ -112,7 +112,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* Holiday Form */
 .form-label{display:block;font-weight:600;color:var(--text-dim);margin-bottom:8px;font-size:13px}
-.form-input,.form-select,.form-textarea{width:100%;padding:12px;border:2px solid var(--border);border-radius:var(--radius);font-size:15px;background:#fff;color:var(--text);font-family:inherit}
+.form-input,.form-select,.form-textarea{width:100%;max-width:100%;padding:12px;border:2px solid var(--border);border-radius:var(--radius);font-size:15px;background:#fff;color:var(--text);font-family:inherit;box-sizing:border-box}
 .form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--accent-dark)}
 .form-textarea{resize:vertical;min-height:70px;font-size:13px}
 .form-group{margin-bottom:14px}
@@ -123,8 +123,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .holiday-type-icon{font-size:22px;margin-bottom:4px}
 .holiday-type-name{font-size:11px;font-weight:600}
 .holiday-type-desc{font-size:9px;color:var(--text-dim);margin-top:2px}
-.date-range-group{display:flex;gap:10px}
-.date-field{flex:1}
+.date-range-group{display:flex;flex-direction:column;gap:8px}
+.date-field{width:100%}
+@media(min-width:400px){.date-range-group{flex-direction:row}.date-field{flex:1;min-width:0}}
 .date-field-label{font-size:11px;color:var(--text-dim);margin-bottom:4px;font-weight:600}
 .days-preview{background:rgba(233,181,149,0.15);border:1px solid var(--accent);border-radius:var(--radius);padding:12px;text-align:center;margin:12px 0}
 .days-preview-value{font-size:28px;font-weight:700;color:var(--accent-dark)}
