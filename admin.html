@@ -396,7 +396,7 @@ function renderCalTab(){
   });
 
   let h=`<div class="card"><div class="card-body">`;
-  h+=`<div class="cal-nav"><button class="month-btn" onclick="calViewMo(-1)">‹</button><span class="cal-title">${S.calViewDate.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</span><button class="month-btn" onclick="calViewMo(1)" ${isCur?'disabled':''}>›</button></div>`;
+  h+=`<div class="cal-nav"><button class="month-btn" onclick="calViewMo(-1)">‹</button><span class="cal-title">${S.calViewDate.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</span><button class="month-btn" onclick="calViewMo(1)">›</button></div>`;
   h+=`<div class="cal-grid">`;
   ['S','M','T','W','T','F','S'].forEach(d=>h+=`<div class="cal-hdr">${d}</div>`);
   for(let i=0;i<start;i++)h+='<div class="cal-cell empty"></div>';
@@ -420,7 +420,7 @@ function renderCalTab(){
   h+=`</div></div></div>`;
   el.innerHTML=h;
 }
-function calViewMo(d){if(!S.calViewDate)S.calViewDate=new Date();const n=new Date();if(d>0&&S.calViewDate.getFullYear()===n.getFullYear()&&S.calViewDate.getMonth()===n.getMonth())return;S.calViewDate.setMonth(S.calViewDate.getMonth()+d);renderCalTab();}
+function calViewMo(d){if(!S.calViewDate)S.calViewDate=new Date();S.calViewDate.setMonth(S.calViewDate.getMonth()+d);renderCalTab();}
 
 function renderCloTab(){
   const el=$('cloTab');if(!el)return;
