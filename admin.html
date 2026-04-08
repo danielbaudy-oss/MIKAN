@@ -152,7 +152,7 @@ function logout(){sessionStorage.removeItem('mikan_user');window.location.href='
 
 const S={sec:'hours',yr:new Date().getFullYear(),mo:new Date().getMonth()+1,emps:[],dash:[],pending:[],closures:[],paidHrs:[],loaded:false,mk:'',search:'',selEmp:null,calDate:null,empPunched:{}};
 
-async function loadAll(f){const k=`${S.yr}-${S.mo}`;if(S.loaded&&S.mk===k&&!f)return;try{const r=await api({action:'adminInit',year:String(S.yr),month:String(S.mo)});if(r.success){S.dash=r.dashboard;S.emps=r.employees;S.pending=r.pendingRequests;S.closures=r.closures;S.loaded=true;S.mk=k;updBadge();}}catch(e){toast('Error loading','error');}}
+async function loadAll(f){const k=`${S.yr}-${S.mo}`;if(S.loaded&&S.mk===k&&!f)return;try{const r=await api({action:'adminInit',year:String(S.yr),month:String(S.mo)});if(r.success){S.dash=r.dashboard;S.emps=r.employees;S.pending=r.pendingRequests;S.approvedHols=r.approvedHolidays||[];S.closures=r.closures;S.loaded=true;S.mk=k;updBadge();}}catch(e){toast('Error loading','error');}}
 function updBadge(){const b=$('pendingBadge'),c=S.pending.length;if(c>0){b.textContent=c;b.style.display='inline';}else b.style.display='none';}
 
 function showSection(s){S.sec=s;document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));$(`nav${s.charAt(0).toUpperCase()+s.slice(1)}`).classList.add('active');$('sidebar').classList.remove('open');render();}
@@ -259,7 +259,54 @@ function renderOvTab(){
   el.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">📊 Holiday Overview</span></div><table><thead><tr><th>Employee</th><th>Vacation</th><th>Personal</th><th>Sick</th><th>Med. Visit</th></tr></thead><tbody>${S.emps.filter(e=>e.status==='Active').map(e=>`<tr><td class="emp-name">${e.name}</td><td>0/${e.annualDays}</td><td>0/${e.personalDays}</td><td>0</td><td>0h/${e.medicalHours||20}h</td></tr>`).join('')}</tbody></table></div>`;
 }
 
-function renderCalTab(){const el=$('calTab');if(!el)return;el.innerHTML='<div class="card"><div class="card-body"><div class="empty"><div class="empty-icon">📅</div><p>Calendar view — coming soon</p></div></div></div>';}
+function renderCalTab(){
+  const el=$('calTab');if(!el)return;
+  if(!S.calViewDate)S.calViewDate=new Date();
+  const y=S.calViewDate.getFullYear(),m=S.calViewDate.getMonth(),first=new Date(y,m,1),last=new Date(y,m+1,0),start=first.getDay();
+  const now=new Date(),isCur=y===now.getFullYear()&&m===now.getMonth();
+
+  // Build closure map for this month
+  const cloMap={};
+  S.closures.forEach(c=>{const s=new Date(c.startDate),e=new Date(c.endDate);for(let d=new Date(s);d<=e;d.setDate(d.getDate()+1)){const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;cloMap[ds]=c.name;}});
+
+  // Build approved holidays map: date -> [{name, type}]
+  const holMap={};
+  S.pending.concat(S.approvedHols||[]).forEach(r=>{
+    if(r.status!=='Approved'&&r.status!=='Pending')return;
+    const s=new Date(r.startDate),e=new Date(r.endDate);
+    for(let d=new Date(s);d<=e;d.setDate(d.getDate()+1)){
+      const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      if(!holMap[ds])holMap[ds]=[];
+      holMap[ds].push({name:r.employeeName,type:r.type,status:r.status});
+    }
+  });
+
+  let h=`<div class="card"><div class="card-body">`;
+  h+=`<div class="cal-nav"><button class="month-btn" onclick="calViewMo(-1)">‹</button><span class="cal-title">${S.calViewDate.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</span><button class="month-btn" onclick="calViewMo(1)" ${isCur?'disabled':''}>›</button></div>`;
+  h+=`<div class="cal-grid">`;
+  ['S','M','T','W','T','F','S'].forEach(d=>h+=`<div class="cal-hdr">${d}</div>`);
+  for(let i=0;i<start;i++)h+='<div class="cal-cell empty"></div>';
+  for(let d=1;d<=last.getDate();d++){
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const clo=cloMap[ds];const hols=holMap[ds]||[];
+    const isT=y===now.getFullYear()&&m===now.getMonth()&&d===now.getDate();
+    const hasData=clo||hols.length>0;
+    let cls='cal-cell';if(hasData)cls+=' has-data';if(isT)cls+=' today';if(clo)cls+=' closure';
+    h+=`<div class="${cls}" style="align-items:flex-start;padding:4px;${clo?'background:#fef3c7;border-color:#fde68a':''}">`;
+    h+=`<div class="cal-day" style="font-size:11px">${d}</div>`;
+    if(clo)h+=`<div style="font-size:7px;color:#92400e;font-weight:600;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${clo}</div>`;
+    hols.slice(0,2).forEach(ho=>{
+      const colors={Annual:'#1e40af',Personal:'#5b21b6',Medical:'#991b1b',MedAppt:'#92400e'};
+      const bgs={Annual:'#dbeafe',Personal:'#ede9fe',Medical:'#fee2e2',MedAppt:'#fef3c7'};
+      h+=`<div style="font-size:7px;padding:1px 3px;border-radius:3px;background:${bgs[ho.type]||'#e5e7eb'};color:${colors[ho.type]||'#374151'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;margin-top:1px;opacity:${ho.status==='Pending'?'0.6':'1'}">${ho.name.split(' ')[0]}</div>`;
+    });
+    if(hols.length>2)h+=`<div style="font-size:7px;color:var(--text-dim)">+${hols.length-2} more</div>`;
+    h+=`</div>`;
+  }
+  h+=`</div></div></div>`;
+  el.innerHTML=h;
+}
+function calViewMo(d){if(!S.calViewDate)S.calViewDate=new Date();const n=new Date();if(d>0&&S.calViewDate.getFullYear()===n.getFullYear()&&S.calViewDate.getMonth()===n.getMonth())return;S.calViewDate.setMonth(S.calViewDate.getMonth()+d);renderCalTab();}
 
 function renderCloTab(){
   const el=$('cloTab');if(!el)return;
