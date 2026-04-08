@@ -1,0 +1,6 @@
+.clasp.json
+.claspignore
+appsscript.json
+Code.gs
+apps-script/
+.vscode/
