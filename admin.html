@@ -379,15 +379,25 @@ function renderCalTab(){
   const y=S.calViewDate.getFullYear(),m=S.calViewDate.getMonth(),first=new Date(y,m,1),last=new Date(y,m+1,0),start=first.getDay();
   const now=new Date(),isCur=y===now.getFullYear()&&m===now.getMonth();
 
-  // Build closure map for this month
+  // Build closure map for this month (use local date parsing to avoid UTC shift)
   const cloMap={};
-  S.closures.forEach(c=>{const s=new Date(c.startDate),e=new Date(c.endDate);for(let d=new Date(s);d<=e;d.setDate(d.getDate()+1)){const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;cloMap[ds]=c.name;}});
+  S.closures.forEach(c=>{
+    const[sy,sm2,sd]=c.startDate.split('-').map(Number);
+    const[ey,em2,ed]=c.endDate.split('-').map(Number);
+    const s=new Date(sy,sm2-1,sd),e=new Date(ey,em2-1,ed);
+    for(let d=new Date(s);d<=e;d.setDate(d.getDate()+1)){
+      const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      cloMap[ds]=c.name;
+    }
+  });
 
   // Build approved holidays map: date -> [{name, type}]
   const holMap={};
   S.pending.concat(S.approvedHols||[]).forEach(r=>{
     if(r.status!=='Approved'&&r.status!=='Pending')return;
-    const s=new Date(r.startDate),e=new Date(r.endDate);
+    const[sy,sm2,sd]=r.startDate.split('-').map(Number);
+    const[ey,em2,ed]=r.endDate.split('-').map(Number);
+    const s=new Date(sy,sm2-1,sd),e=new Date(ey,em2-1,ed);
     for(let d=new Date(s);d<=e;d.setDate(d.getDate()+1)){
       const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       if(!holMap[ds])holMap[ds]=[];
@@ -418,6 +428,14 @@ function renderCalTab(){
     h+=`</div>`;
   }
   h+=`</div></div></div>`;
+  // Legend
+  h+=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:11px;color:var(--text-dim)">
+    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#fef3c7;border:1px solid #fde68a;display:inline-block"></span>Closure</span>
+    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#dbeafe;display:inline-block"></span>Vacation</span>
+    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#ede9fe;display:inline-block"></span>Personal</span>
+    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#fee2e2;display:inline-block"></span>Sick</span>
+    <span style="display:flex;align-items:center;gap:4px;opacity:0.5"><span style="width:10px;height:10px;border-radius:2px;background:#e5e7eb;display:inline-block"></span>Pending</span>
+  </div>`;
   el.innerHTML=h;
 }
 function calViewMo(d){if(!S.calViewDate)S.calViewDate=new Date();S.calViewDate.setMonth(S.calViewDate.getMonth()+d);renderCalTab();}
