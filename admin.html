@@ -171,7 +171,14 @@ if(!S.viewMode)S.viewMode='monthly';
 if(!S.weekOff)S.weekOff=0;
 
 function renderHours(m){
-  const r=S.dash,te=r.length,th=r.reduce((s,e)=>s+e.monthHours,0),ah=te?th/te:0;
+  const r=S.dash,te=r.length;
+  // Calculate totals based on view mode
+  let th,ah;
+  if(S.viewMode==='weekly'){
+    const w=getWeekRange(S.weekOff);const ws=w.start.toISOString().slice(0,10),we=w.end.toISOString().slice(0,10);
+    th=r.reduce((s,e)=>{const dh=e.dailyHours||{};let wh=0;Object.entries(dh).forEach(([d,h])=>{if(d>=ws&&d<=we)wh+=h;});return s+wh;},0);
+  }else{th=r.reduce((s,e)=>s+e.monthHours,0);}
+  ah=te?th/te:0;
   let h=`<div class="page-header"><div><div class="page-title">📊 Employee Hours</div></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-primary" onclick="exportCSV()">📥 Export</button><button class="btn btn-primary" onclick="refresh()">🔄</button></div></div>`;
   h+=`<div class="stats-grid"><div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">${te}</div><div class="stat-label">Employees</div></div><div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-value">${th.toFixed(1)}h</div><div class="stat-label">Total Hours</div></div><div class="stat-card"><div class="stat-icon">📊</div><div class="stat-value">${ah.toFixed(1)}h</div><div class="stat-label">Avg Hours</div></div><div class="stat-card"><div class="stat-icon">📋</div><div class="stat-value">${S.pending.length}</div><div class="stat-label">Pending</div></div></div>`;
   // Tabs row with view toggle + date selector
@@ -194,9 +201,23 @@ function hrTab(id){document.querySelectorAll('#hrTabs .tab').forEach((t,i)=>t.cl
 
 function renderEmpTable(){
   const el=$('empTab');if(!el)return;
-  let h=`<div class="card"><div class="card-header"><div style="display:flex;align-items:center;gap:8px"><span class="card-title">👥 All Employees</span><button class="btn btn-add" onclick="addEmp()" style="padding:5px 12px;font-size:12px">➕ Add</button></div><input type="text" class="search-input" placeholder="🔍 Search..." value="${S.search||''}" oninput="S.search=this.value.toLowerCase();renderEmpTable()"></div><table><thead><tr><th>Employee</th><th>Role</th><th>Days</th><th>Hours</th><th style="width:80px">Actions</th></tr></thead><tbody>`;
-  const filtered=S.dash.filter(e=>!S.search||e.name.toLowerCase().includes(S.search));
-  filtered.forEach(e=>{const cls=e.monthHours>=150?'good':e.monthHours>=100?'warn':'bad';h+=`<tr><td class="emp-name">${e.name}</td><td><span class="emp-role">${e.role}</span></td><td>${e.daysWorked}</td><td><span class="badge badge-${cls}">${e.monthHours.toFixed(1)}h</span></td><td style="white-space:nowrap"><button class="btn-sm" onclick="editEmp('${e.id}')" style="background:var(--accent-dark);color:#fff;margin-right:4px" title="Edit">✏️</button><button class="btn-sm" onclick="openEmpCal('${e.id}','${e.name}')" style="background:#3b82f6;color:#fff" title="Calendar">📅</button></td></tr>`;});
+  // Calculate displayed hours based on view mode
+  let displayData=S.dash;
+  if(S.viewMode==='weekly'){
+    const w=getWeekRange(S.weekOff);
+    const ws=w.start.toISOString().slice(0,10),we=w.end.toISOString().slice(0,10);
+    displayData=S.dash.map(e=>{
+      const dh=e.dailyHours||{};
+      let wHrs=0,wDays=0;
+      Object.entries(dh).forEach(([d,h])=>{if(d>=ws&&d<=we){wHrs+=h;wDays++;}});
+      return{...e,dispHours:Math.round(wHrs*100)/100,dispDays:wDays};
+    });
+  }else{
+    displayData=S.dash.map(e=>({...e,dispHours:e.monthHours,dispDays:e.daysWorked}));
+  }
+  const filtered=displayData.filter(e=>!S.search||e.name.toLowerCase().includes(S.search));
+  let h=`<div class="card"><div class="card-header"><div style="display:flex;align-items:center;gap:8px"><span class="card-title">👥 All Employees</span><button class="btn btn-add" onclick="addEmp()" style="padding:5px 12px;font-size:12px">➕ Add</button></div><input type="text" class="search-input" placeholder="🔍 Search..." value="${S.search||''}" oninput="S.search=this.value.toLowerCase();renderEmpTable()"></div><table><thead><tr><th>Employee</th><th>Role</th><th>Days</th><th>Hours</th><th style="width:40px"></th></tr></thead><tbody>`;
+  filtered.forEach(e=>{const hrs=e.dispHours;const cls=S.viewMode==='weekly'?(hrs>=40?'good':hrs>=20?'warn':'bad'):(hrs>=150?'good':hrs>=100?'warn':'bad');h+=`<tr onclick="editEmp('${e.id}')" style="cursor:pointer"><td class="emp-name">${e.name}</td><td><span class="emp-role">${e.role}</span></td><td>${e.dispDays}</td><td><span class="badge badge-${cls}">${hrs.toFixed(1)}h</span></td><td><button class="btn-sm" onclick="event.stopPropagation();openEmpCal('${e.id}','${e.name}')" style="background:#3b82f6;color:#fff" title="Calendar">📅</button></td></tr>`;});
   h+='</tbody></table></div>';el.innerHTML=h;
 }
 
