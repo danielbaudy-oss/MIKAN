@@ -322,7 +322,11 @@ function switchTab(tab) {
   $('tabHolidays').classList.toggle('active', tab==='holidays');
   $('hoursTab').classList.toggle('active', tab==='hours');
   $('holidaysTab').classList.toggle('active', tab==='holidays');
-  if (tab==='holidays' && !S.holidayLoaded) loadHolidayData();
+  // Holiday tab: show cached data immediately if available, else load
+  if (tab==='holidays') {
+    if (S.holidayLoaded) displayHolidayTab();
+    else loadHolidayData();
+  }
 }
 
 // Overlays
@@ -336,16 +340,27 @@ function closeOverlay(e, type) {
 }
 
 // ========== CLOCK TAB ==========
-async function loadDayData() {
+async function loadDayData(force) {
   const ds = U.formatDate(S.currentDate);
+  // Use cache if available and not forced
+  if (!force && S.dayCache && S.dayCache[ds]) {
+    displayDay(S.dayCache[ds]);
+    return;
+  }
   displayLoading();
   try {
     const data = await apiPost({ action:'getDayData', employee:USER.id, date:ds });
     if (data.success) {
       if (data.closure) S.closures[ds] = data.closure;
+      if (!S.dayCache) S.dayCache = {};
+      S.dayCache[ds] = data.punches || [];
       displayDay(data.punches || []);
     } else displayDay([]);
   } catch(e) { showToast('Error loading data','error'); displayDay([]); }
+}
+
+function invalidateDayCache(ds) {
+  if (S.dayCache) delete S.dayCache[ds];
 }
 
 function displayLoading() {
@@ -433,7 +448,7 @@ async function doPunch() {
   try {
     const r = await apiPost({ action:'addPunch', employee:USER.id, name:USER.name, date:ds, time });
     S.isPunching = false;
-    if (r.success) { showToast(r.message,'success'); loadDayData(); }
+    if (r.success) { showToast(r.message,'success'); invalidateDayCache(ds); loadDayData(true); }
     else { showToast(r.message,'error'); btn.disabled=false; }
   } catch(e) { S.isPunching=false; showToast('Error saving punch','error'); btn.disabled=false; }
 }
@@ -451,7 +466,7 @@ function cancelDelete(id) {
 async function confirmDelete(id) {
   try {
     const r = await apiPost({ action:'deletePunch', punchId:id, employee:USER.id });
-    if (r.success) { showToast('Punch deleted','success'); loadDayData(); }
+    if (r.success) { showToast('Punch deleted','success'); invalidateDayCache(U.formatDate(S.currentDate)); loadDayData(true); }
     else showToast(r.message,'error');
   } catch(e) { showToast('Error','error'); }
 }
@@ -463,7 +478,7 @@ async function saveEdit() {
   if (!time) return showToast('Select a time','error');
   try {
     const r = await apiPost({ action:'editPunch', punchId:S.editingPunchId, time, employee:USER.id });
-    if (r.success) { showToast('Punch updated','success'); closeOverlay(null,'edit'); loadDayData(); }
+    if (r.success) { showToast('Punch updated','success'); closeOverlay(null,'edit'); invalidateDayCache(U.formatDate(S.currentDate)); loadDayData(true); }
     else showToast(r.message,'error');
   } catch(e) { showToast('Error','error'); }
 }
@@ -608,6 +623,39 @@ function displayHolidayTab(showSuccess) {
   S.selectedHolidayType = null;
 }
 
+function updateHolidayInPlace() {
+  const s = S.holidaySummary;
+  if (!s) return;
+  // Update balance stats
+  const stats = document.querySelectorAll('.holiday-stat');
+  if (stats.length >= 4) {
+    stats[0].querySelector('.holiday-stat-value').textContent = `${s.annualUsed}/${s.annualTotal}`;
+    stats[1].querySelector('.holiday-stat-value').textContent = `${s.personalUsed}/${s.personalTotal}`;
+    stats[2].querySelector('.holiday-stat-value').textContent = s.medicalUsed;
+    stats[3].querySelector('.holiday-stat-value').textContent = `${s.medApptUsed||0}h/${s.medicalHoursTotal||20}h`;
+  }
+  // Update requests list
+  const reqList = document.querySelector('.card:last-child');
+  if (reqList) {
+    const reqs = (s.requests||[]).filter(r=>r.status==='Pending'||r.status==='Approved').sort((a,b)=>new Date(b.requestDate)-new Date(a.requestDate)).slice(0,10);
+    let html = '<div class="section-title">📋 My Requests</div>';
+    if (reqs.length) {
+      reqs.forEach(r => {
+        const statusLabel = {Pending:'Pending',Approved:'Approved',Rejected:'Rejected'}[r.status]||r.status;
+        const typeName = HOLIDAY_TYPES[r.type]?.name||r.type;
+        const emoji = HOLIDAY_TYPES[r.type]?.emoji||'📅';
+        html += `<div class="request-item ${r.status}">
+          <div class="request-header"><span class="request-type">${emoji} ${typeName}</span><span class="request-status ${r.status}">${statusLabel}</span></div>
+          <div class="request-dates">${new Date(r.startDate).toLocaleDateString('en-US')}${r.startDate!==r.endDate?' - '+new Date(r.endDate).toLocaleDateString('en-US'):''}</div>
+          <div class="request-days">${r.days} day${r.days!==1?'s':''}${r.reason?' • '+U.esc(r.reason.substring(0,50))+(r.reason.length>50?'...':''):''}</div>
+        </div>`;
+      });
+    } else html += '<div class="empty-state"><div class="empty-state-icon">📝</div><div class="empty-state-text">No requests yet</div></div>';
+    reqList.innerHTML = html;
+  }
+  updateBadge();
+}
+
 function selectType(type) {
   S.selectedHolidayType = type;
   document.querySelectorAll('.holiday-type-btn').forEach(b=>b.className='holiday-type-btn');
@@ -656,7 +704,11 @@ async function submitHoliday() {
     const btn=$('submitBtn');btn.disabled=true;btn.textContent='⏳ Submitting...';
     try{
       const r=await apiPost({action:'submitHoliday',employee:USER.id,name:USER.name,type:'MedAppt',startDate:date,endDate:date,reason:`${st}-${et} (${hours}h)`});
-      if(r.success){await loadHolidayData();displayHolidayTab(true);showToast(`Medical visit submitted: ${hours}h`,'success');}
+      if(r.success){
+        btn.disabled=false;btn.textContent='📤 Submit Request';
+        showToast(`Medical visit submitted: ${hours}h`,'success');
+        loadHolidayData().then(()=>updateHolidayInPlace());
+      }
       else{showToast(r.message,'error');btn.disabled=false;btn.textContent='📤 Submit Request';}
     }catch(e){showToast('Error','error');btn.disabled=false;btn.textContent='📤 Submit Request';}
     return;
@@ -671,7 +723,12 @@ async function submitHoliday() {
 
   try {
     const r = await apiPost({ action:'submitHoliday', employee:USER.id, name:USER.name, type:S.selectedHolidayType, startDate:start, endDate:end, reason });
-    if(r.success) { await loadHolidayData(); displayHolidayTab(true); showToast(`Request submitted (${r.totalDays} day${r.totalDays!==1?'s':''})`,'success'); }
+    if(r.success) {
+      btn.disabled=false; btn.textContent='📤 Submit Request';
+      showToast(`Request submitted (${r.totalDays} day${r.totalDays!==1?'s':''})`,'success');
+      // Update in background, then refresh just the dynamic parts
+      loadHolidayData().then(()=>updateHolidayInPlace());
+    }
     else { showToast(r.message,'error'); btn.disabled=false; btn.textContent='📤 Submit Request'; }
   } catch(e) { showToast('Error submitting','error'); btn.disabled=false; btn.textContent='📤 Submit Request'; }
 }
@@ -686,8 +743,8 @@ window.onload = () => {
       for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)) S.closures[U.formatDate(d)]=c.name;
     });
   }).catch(()=>{});
-  // Load holiday summary for badge
-  apiPost({ action:'getHolidaySummary', employee:USER.id }).then(r=>{if(r.success){S.holidaySummary=r;updateBadge();}}).catch(()=>{});
+  // Pre-load holiday data in background (so tab is instant when clicked)
+  loadHolidayData();
   loadDayData();
 };
 </script>
