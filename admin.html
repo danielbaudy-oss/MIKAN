@@ -265,7 +265,16 @@ function reqSub(id){const tabs=['reqPending','reqApproved'];document.querySelect
 
 function renderOvTab(){
   const el=$('ovTab');if(!el)return;
-  el.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">📊 Holiday Overview</span></div><table><thead><tr><th>Employee</th><th>Vacation</th><th>Personal</th><th>Sick</th><th>Med. Visit</th></tr></thead><tbody>${S.emps.filter(e=>e.status==='Active').map(e=>`<tr><td class="emp-name">${e.name}</td><td>0/${e.annualDays}</td><td>0/${e.personalDays}</td><td>0</td><td>0h/${e.medicalHours||20}h</td></tr>`).join('')}</tbody></table></div>`;
+  const all=S.approvedHols||[];
+  const rows=S.emps.filter(e=>e.status==='Active').map(e=>{
+    const my=all.filter(h=>h.employeeId===e.id);
+    const vac=my.filter(h=>h.type==='Annual').reduce((s,h)=>s+h.days,0);
+    const per=my.filter(h=>h.type==='Personal').reduce((s,h)=>s+h.days,0);
+    const sick=my.filter(h=>h.type==='Medical').reduce((s,h)=>s+h.days,0);
+    const med=my.filter(h=>h.type==='MedAppt').reduce((s,h)=>s+h.days,0);
+    return `<tr><td class="emp-name">${e.name}</td><td>${vac}/${e.annualDays}</td><td>${per}/${e.personalDays}</td><td>${sick}</td><td>${med}h/${e.medicalHours||20}h</td></tr>`;
+  }).join('');
+  el.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">📊 Holiday Overview</span></div><table><thead><tr><th>Employee</th><th>Vacation</th><th>Personal</th><th>Sick</th><th>Med. Visit</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 function renderCalTab(){
