@@ -270,8 +270,9 @@ function parseDateLocal(ds){const[y,m,d]=ds.split('-').map(Number);return new Da
 async function openDayDetail(date){
   S.currentDayDate=date;
   $('mBody').innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  const calY=S.calDate.getFullYear(),calM=S.calDate.getMonth()+1;
   try{
-    const r=await api({action:'getEmployeeDetail',employee:S.selEmp.id,year:String(S.yr),month:String(S.mo)});
+    const r=await api({action:'getEmployeeDetail',employee:S.selEmp.id,year:String(calY),month:String(calM)});
     renderDayDetail(date,r.success?r.days:{}); 
   }catch(e){$('mBody').innerHTML='<p>Error loading</p>';}
 }
@@ -307,7 +308,8 @@ async function saveAdminPunch(date){
   const time=$('apTime').value;if(!time)return toast('Select a time','error');
   const btn=$('apSave');btn.disabled=true;btn.textContent='⏳';
   try{const r=await api({action:'addPunch',employee:S.selEmp.id,name:S.selEmp.name,date,time});
-  if(r.success){toast('Punch added','success');await openDayDetail(date);}else{toast(r.message,'error');btn.disabled=false;btn.textContent='➕ Add Punch';}}
+  if(r.success){toast('Punch added','success');await openDayDetail(date);}
+  else{toast(r.message,'error');btn.disabled=false;btn.textContent='➕ Add Punch';}}
   catch(e){toast('Error','error');btn.disabled=false;btn.textContent='➕ Add Punch';}
 }
 
