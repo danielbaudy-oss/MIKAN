@@ -9,91 +9,56 @@
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#f1dfd3;--accent:#e9b595;--accent-dark:#d4956e;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--card:#fff;--border:#e0d0c4;--text:#1a1a1a;--text-dim:#6b5c52;--radius:14px}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-
-/* Sidebar */
 .sidebar{position:fixed;left:0;top:0;bottom:0;width:260px;background:#fff;padding:20px;overflow-y:auto;z-index:100;border-right:1px solid var(--border);box-shadow:2px 0 10px rgba(0,0,0,0.04)}
 .sidebar-header{display:flex;align-items:center;gap:12px;margin-bottom:28px;padding-bottom:18px;border-bottom:1px solid var(--border)}
 .sidebar-logo img{width:40px;height:40px;object-fit:contain}
 .sidebar-title h1{font-size:16px;font-weight:700;color:var(--text)}
 .sidebar-title p{font-size:11px;color:var(--text-dim)}
 .nav-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--radius);cursor:pointer;transition:all .2s;margin-bottom:4px;color:var(--text-dim);font-size:14px}
-.nav-item:hover{background:var(--bg);color:var(--text)}
+.nav-item:hover{background:var(--accent);color:var(--text)}
 .nav-item.active{background:var(--accent-dark);color:#fff;font-weight:600}
 .nav-icon{font-size:18px}
 .nav-badge{margin-left:auto;background:var(--danger);color:#fff;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700}
 .sidebar-footer{position:absolute;bottom:20px;left:20px;right:20px}
 .admin-info{background:var(--bg);border-radius:var(--radius);padding:12px;margin-bottom:10px}
-.admin-name{font-weight:600;font-size:13px;color:var(--text)}
-.admin-role{font-size:11px;color:var(--text-dim)}
+.admin-name{font-weight:600;font-size:13px;color:var(--text)}.admin-role{font-size:11px;color:var(--text-dim)}
 .logout-btn{width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text-dim);cursor:pointer;font-weight:600;font-size:13px}
 .logout-btn:hover{background:var(--accent);color:var(--text)}
-
-/* Main */
 .main{margin-left:260px;padding:24px;min-height:100vh}
-.content-section{display:none}.content-section.active{display:block}
 .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:16px}
 .page-title{font-size:24px;font-weight:700;color:var(--text)}
 .page-subtitle{color:var(--text-dim);font-size:13px;margin-top:4px}
-
-/* Action Buttons */
 .action-btn{padding:10px 18px;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;transition:all .2s;display:inline-flex;align-items:center;gap:6px;color:#fff}
-.action-btn.primary{background:var(--accent-dark)}
-.action-btn.primary:hover{background:#c07a50}
-.action-btn.success{background:var(--success)}
-.action-btn.add{background:rgba(212,149,110,0.15);color:var(--accent-dark);border:1px solid var(--accent)}
-.action-btn.add:hover{background:rgba(212,149,110,0.25)}
+.action-btn.primary{background:var(--accent-dark)}.action-btn.primary:hover{background:#c07a50}
+.action-btn.add{background:rgba(212,149,110,0.15);color:var(--accent-dark);border:1px solid var(--accent)}.action-btn.add:hover{background:rgba(212,149,110,0.25)}
 .action-btn:disabled{opacity:.5;cursor:not-allowed}
 .action-btn-sm{padding:6px 12px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:#fff}
-.action-btn-sm.approve{background:var(--success)}
-.action-btn-sm.reject{background:var(--danger)}
-
-/* Stats */
+.action-btn-sm.approve{background:var(--success)}.action-btn-sm.reject{background:var(--danger)}
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
 .stat-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
-.stat-icon{font-size:28px;margin-bottom:10px}
-.stat-value{font-size:28px;font-weight:700;color:var(--text)}
-.stat-label{font-size:12px;color:var(--text-dim);margin-top:4px}
-
-/* Card */
+.stat-icon{font-size:28px;margin-bottom:10px}.stat-value{font-size:28px;font-weight:700;color:var(--text)}.stat-label{font-size:12px;color:var(--text-dim);margin-top:4px}
 .card{background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
 .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
-.card-title{font-size:16px;font-weight:700;color:var(--text)}
-.card-body{padding:20px}
-
-/* Month Selector */
+.card-title{font-size:16px;font-weight:700;color:var(--text)}.card-body{padding:20px}
 .month-selector{display:flex;align-items:center;gap:8px;background:#fff;padding:6px;border-radius:var(--radius);border:1px solid var(--border)}
 .month-nav-btn{width:36px;height:36px;border:none;border-radius:8px;background:var(--bg);cursor:pointer;font-size:16px;font-weight:700;color:var(--text);display:flex;align-items:center;justify-content:center}
-.month-nav-btn:hover{background:var(--accent)}
-.month-nav-btn:disabled{opacity:.3;cursor:not-allowed}
+.month-nav-btn:hover{background:var(--accent)}.month-nav-btn:disabled{opacity:.3;cursor:not-allowed}
 .month-display{min-width:140px;text-align:center;font-weight:700;color:var(--text);font-size:14px}
 .month-current{background:var(--accent-dark);color:#fff;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;margin-left:6px}
-
-/* Table */
 table{width:100%;border-collapse:collapse}
-th{padding:12px 16px;text-align:left;font-weight:600;color:var(--text-dim);font-size:12px;text-transform:uppercase;background:var(--bg)}
+th{padding:12px 16px;text-align:left;font-weight:600;color:#6b5c52;font-size:12px;text-transform:uppercase;background:#e9ddd2}
 td{padding:14px 16px;border-bottom:1px solid var(--border);color:var(--text)}
-tbody tr{transition:all .2s}
-tbody tr:hover{background:var(--bg)}
-.emp-name{font-weight:600;color:var(--text)}
-.emp-role{font-size:11px;color:var(--text-dim)}
+tbody tr{transition:all .2s}tbody tr:hover{background:#e9ddd2}
+.emp-name{font-weight:600;color:var(--text)}.emp-role{font-size:11px;color:var(--text-dim)}
 .hours-badge{display:inline-block;padding:4px 12px;border-radius:10px;font-weight:600;font-size:13px}
-.hours-badge.good{background:#d1fae5;color:#065f46}
-.hours-badge.ok{background:#fef3c7;color:#92400e}
-.hours-badge.low{background:#fee2e2;color:#991b1b}
+.hours-badge.good{background:#d1fae5;color:#065f46}.hours-badge.ok{background:#fef3c7;color:#92400e}.hours-badge.low{background:#fee2e2;color:#991b1b}
 .pin-badge{background:var(--bg);padding:4px 10px;border-radius:8px;font-family:monospace;font-size:13px;color:var(--text-dim)}
 .status-badge{padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600}
-.status-badge.Active{background:#d1fae5;color:#065f46}
-.status-badge.Inactive{background:#fee2e2;color:#991b1b}
+.status-badge.Active{background:#d1fae5;color:#065f46}.status-badge.Inactive{background:#fee2e2;color:#991b1b}
 .type-badge{padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600}
-.type-badge.Annual{background:#dbeafe;color:#1e40af}
-.type-badge.Personal{background:#ede9fe;color:#5b21b6}
-.type-badge.Medical{background:#fee2e2;color:#991b1b}
+.type-badge.Annual{background:#dbeafe;color:#1e40af}.type-badge.Personal{background:#ede9fe;color:#5b21b6}.type-badge.Medical{background:#fee2e2;color:#991b1b}
 .request-status{padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600}
-.request-status.Pending{background:#fef3c7;color:#92400e}
-.request-status.Approved{background:#d1fae5;color:#065f46}
-.request-status.Rejected{background:#fee2e2;color:#991b1b}
-
-/* Modal */
+.request-status.Pending{background:#fef3c7;color:#92400e}.request-status.Approved{background:#d1fae5;color:#065f46}.request-status.Rejected{background:#fee2e2;color:#991b1b}
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
 .modal-overlay.active{display:flex}
 .modal{background:#fff;border:1px solid var(--border);border-radius:20px;width:90%;max-width:500px;max-height:90vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
@@ -101,361 +66,74 @@ tbody tr:hover{background:var(--bg)}
 .modal-header h2{font-size:18px;color:#fff}
 .modal-close{width:36px;height:36px;border-radius:10px;border:none;background:rgba(255,255,255,0.25);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .modal-body{padding:24px;max-height:calc(90vh - 80px);overflow-y:auto}
-.form-group{margin-bottom:16px}
-.form-label{display:block;font-weight:600;color:var(--text-dim);margin-bottom:6px;font-size:13px}
+.form-group{margin-bottom:16px}.form-label{display:block;font-weight:600;color:var(--text-dim);margin-bottom:6px;font-size:13px}
 .form-input,.form-select{width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:14px;background:#fff;color:var(--text);font-family:inherit}
 .form-input:focus,.form-select:focus{outline:none;border-color:var(--accent-dark)}
-.form-select option{background:#fff;color:var(--text)}
-.form-hint{font-size:11px;color:var(--text-dim);margin-top:4px}
+.form-select option{background:#fff;color:var(--text)}.form-hint{font-size:11px;color:var(--text-dim);margin-top:4px}
 .btn-row{display:flex;gap:10px;margin-top:20px}
-.submit-btn{flex:1;padding:12px;background:var(--accent-dark);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
-.submit-btn:disabled{opacity:.5}
+.submit-btn{flex:1;padding:12px;background:var(--accent-dark);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}.submit-btn:disabled{opacity:.5}
 .cancel-btn{flex:1;padding:12px;background:var(--bg);color:var(--text-dim);border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
-
-/* Closure item */
 .closure-item{display:flex;justify-content:space-between;align-items:center;padding:14px;background:#fef3c7;border:1px solid #fde68a;border-radius:var(--radius);margin-bottom:8px}
-.closure-info .closure-name{font-weight:600;color:#92400e;font-size:14px}
-.closure-info .closure-dates{font-size:12px;color:#b45309;margin-top:2px}
+.closure-info .closure-name{font-weight:600;color:#92400e;font-size:14px}.closure-info .closure-dates{font-size:12px;color:#b45309;margin-top:2px}
 .closure-delete{width:32px;height:32px;border-radius:8px;border:none;background:#fee2e2;color:#991b1b;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
-
-/* Empty & Loading */
-.empty-state{text-align:center;padding:40px;color:var(--text-dim)}
-.empty-state-icon{font-size:48px;opacity:.4;margin-bottom:12px}
-.loading{text-align:center;padding:40px}
-.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+.empty-state{text-align:center;padding:40px;color:var(--text-dim)}.empty-state-icon{font-size:48px;opacity:.4;margin-bottom:12px}
+.loading{text-align:center;padding:40px}.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);padding:12px 24px;border-radius:var(--radius);font-weight:600;font-size:13px;z-index:2000;opacity:0;transition:all .3s;color:#fff}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.success{background:var(--success)}
-.toast.error{background:var(--danger)}
-
-/* Mobile */
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.toast.success{background:var(--success)}.toast.error{background:var(--danger)}
 .mobile-menu-btn{display:none;position:fixed;top:16px;left:16px;width:44px;height:44px;border-radius:var(--radius);border:none;background:var(--accent-dark);color:#fff;font-size:20px;cursor:pointer;z-index:200;align-items:center;justify-content:center}
-@media(max-width:768px){
-  .sidebar{transform:translateX(-100%);transition:transform .3s}.sidebar.open{transform:translateX(0)}
-  .mobile-menu-btn{display:flex}
-  .main{margin-left:0;padding:16px;padding-top:70px}
-  .stats-grid{grid-template-columns:repeat(2,1fr)}
-  table{display:block;overflow-x:auto}
-}
+@media(max-width:768px){.sidebar{transform:translateX(-100%);transition:transform .3s}.sidebar.open{transform:translateX(0)}.mobile-menu-btn{display:flex}.main{margin-left:0;padding:16px;padding-top:70px}.stats-grid{grid-template-columns:repeat(2,1fr)}table{display:block;overflow-x:auto}}
 </style>
 </head>
 <body>
 <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
 <div class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <div class="sidebar-logo"><img src="logo.png" alt="MIKAN" style="width:40px;height:40px;object-fit:contain"></div>
-    <div class="sidebar-title"><h1>MIKAN</h1><p>Admin Panel</p></div>
-  </div>
+  <div class="sidebar-header"><div class="sidebar-logo"><img src="logo.png" alt="MIKAN" style="width:40px;height:40px;object-fit:contain"></div><div class="sidebar-title"><h1>MIKAN</h1><p>Admin Panel</p></div></div>
   <nav>
     <div class="nav-item active" onclick="showSection('dashboard')" id="navDashboard"><span class="nav-icon">📊</span>Dashboard</div>
     <div class="nav-item" onclick="showSection('employees')" id="navEmployees"><span class="nav-icon">👥</span>Employees</div>
     <div class="nav-item" onclick="showSection('requests')" id="navRequests"><span class="nav-icon">🏖️</span>Time Off<span class="nav-badge" id="pendingBadge" style="display:none">0</span></div>
     <div class="nav-item" onclick="showSection('closures')" id="navClosures"><span class="nav-icon">🔒</span>Closures</div>
   </nav>
-  <div class="sidebar-footer">
-    <div class="admin-info"><div class="admin-name" id="adminName">Admin</div><div class="admin-role">Administrator</div></div>
-    <button class="logout-btn" onclick="logout()">🚪 Log Out</button>
-  </div>
+  <div class="sidebar-footer"><div class="admin-info"><div class="admin-name" id="adminName">Admin</div><div class="admin-role">Administrator</div></div><button class="logout-btn" onclick="logout()">🚪 Log Out</button></div>
 </div>
 <div class="main" id="mainContent"></div>
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal"><div class="modal-header"><h2 id="modalTitle"></h2><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body" id="modalBody"></div></div>
-</div>
+<div class="modal-overlay" id="modalOverlay"><div class="modal"><div class="modal-header"><h2 id="modalTitle"></h2><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body" id="modalBody"></div></div></div>
 <div class="toast" id="toast"></div>
-
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbzNRsp18lbCt5rJrDFXHCZWCwRvBepq39lP-rmURbHxxWM0qwnFvXAnWp3V9eUZJX0y/exec';
-const USER = JSON.parse(sessionStorage.getItem('mikan_user') || 'null');
-if (!USER || USER.role !== 'admin') window.location.href = 'index.html';
-else document.getElementById('adminName').textContent = USER.name;
-
-const $ = id => document.getElementById(id);
-const showToast = (msg, type='') => { const t=$('toast'); t.textContent=msg; t.className=`toast ${type} show`; setTimeout(()=>t.classList.remove('show'),3000); };
-
-const HOLIDAY_TYPES = { Annual:'Vacation', Personal:'Personal', Medical:'Sick Leave' };
-
-const state = {
-  section: 'dashboard',
-  year: new Date().getFullYear(),
-  month: new Date().getMonth() + 1,
-  employees: [],
-  dashboard: null,
-  pendingRequests: [],
-  closures: []
-};
-
-async function apiPost(data) {
-  const res = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(data) });
-  return res.json();
-}
-
-function logout() { sessionStorage.removeItem('mikan_user'); window.location.href = 'index.html'; }
-
-// Navigation
-function showSection(s) {
-  state.section = s;
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  $(`nav${s.charAt(0).toUpperCase()+s.slice(1)}`).classList.add('active');
-  $('sidebar').classList.remove('open');
-  render();
-}
-
-// Modal
-function openModal(title, html) {
-  $('modalTitle').textContent = title;
-  $('modalBody').innerHTML = html;
-  $('modalOverlay').classList.add('active');
-}
-function closeModal() { $('modalOverlay').classList.remove('active'); }
-
-// Month nav
-function changeMonth(dir) {
-  const now = new Date();
-  if (dir > 0 && state.year === now.getFullYear() && state.month === now.getMonth()+1) return;
-  state.month += dir;
-  if (state.month < 1) { state.month=12; state.year--; }
-  else if (state.month > 12) { state.month=1; state.year++; }
-  render();
-}
-
-function monthSelector() {
-  const d = new Date(state.year, state.month-1);
-  const now = new Date();
-  const isCurrent = state.year===now.getFullYear() && state.month===now.getMonth()+1;
-  return `<div class="month-selector">
-    <button class="month-nav-btn" onclick="changeMonth(-1)">‹</button>
-    <div class="month-display">${d.toLocaleDateString('en-US',{month:'long',year:'numeric'})}${isCurrent?'<span class="month-current">CURRENT</span>':''}</div>
-    <button class="month-nav-btn" onclick="changeMonth(1)" ${isCurrent?'disabled':''}>›</button>
-  </div>`;
-}
-
-// ========== RENDER ==========
-async function render() {
-  const m = $('mainContent');
-  switch(state.section) {
-    case 'dashboard': await renderDashboard(m); break;
-    case 'employees': await renderEmployees(m); break;
-    case 'requests': await renderRequests(m); break;
-    case 'closures': await renderClosures(m); break;
-  }
-}
-
-// Dashboard
-async function renderDashboard(m) {
-  m.innerHTML = `<div class="page-header"><div><div class="page-title">📊 Dashboard</div><div class="page-subtitle">Monthly hours overview</div></div>${monthSelector()}</div><div id="dashContent"><div class="loading"><div class="spinner"></div><p>Loading...</p></div></div>`;
-  try {
-    const r = await apiPost({ action:'getAdminDashboard', year:String(state.year), month:String(state.month) });
-    if (!r.success) { $('dashContent').innerHTML='<p>Error loading data</p>'; return; }
-    state.dashboard = r;
-    updatePendingBadge(r.pendingRequests);
-
-    const totalEmp = r.employees.length;
-    const totalHours = r.employees.reduce((s,e)=>s+e.monthHours,0);
-    const avgHours = totalEmp ? totalHours/totalEmp : 0;
-
-    let html = `<div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">${totalEmp}</div><div class="stat-label">Employees</div></div>
-      <div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-value">${totalHours.toFixed(1)}h</div><div class="stat-label">Total Hours</div></div>
-      <div class="stat-card"><div class="stat-icon">📊</div><div class="stat-value">${avgHours.toFixed(1)}h</div><div class="stat-label">Avg Hours</div></div>
-      <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-value">${r.pendingRequests}</div><div class="stat-label">Pending Requests</div></div>
-    </div>`;
-
-    html += `<div class="card"><div class="card-header"><span class="card-title">👥 Employee Hours</span></div><table><thead><tr><th>Employee</th><th>Role</th><th>Days Worked</th><th>Hours</th></tr></thead><tbody>`;
-    r.employees.forEach(e => {
-      const cls = e.monthHours >= 150 ? 'good' : e.monthHours >= 100 ? 'ok' : 'low';
-      html += `<tr><td class="emp-name">${e.name}</td><td><span class="emp-role">${e.role}</span></td><td>${e.daysWorked}</td><td><span class="hours-badge ${cls}">${e.monthHours.toFixed(1)}h</span></td></tr>`;
-    });
-    html += '</tbody></table></div>';
-    $('dashContent').innerHTML = html;
-  } catch(e) { $('dashContent').innerHTML='<p>Error loading dashboard</p>'; }
-}
-
-// Employees
-async function renderEmployees(m) {
-  m.innerHTML = `<div class="page-header"><div><div class="page-title">👥 Employees</div><div class="page-subtitle">Manage your team</div></div><button class="action-btn add" onclick="openAddEmployee()">➕ Add Employee</button></div><div id="empContent"><div class="loading"><div class="spinner"></div><p>Loading...</p></div></div>`;
-  try {
-    const r = await apiPost({ action:'getEmployees' });
-    if (!r.success) { $('empContent').innerHTML='<p>Error</p>'; return; }
-    state.employees = r.employees;
-    let html = `<div class="card"><table><thead><tr><th>Name</th><th>PIN</th><th>Role</th><th>Status</th><th>Vacation</th><th>Actions</th></tr></thead><tbody>`;
-    r.employees.forEach(e => {
-      html += `<tr>
-        <td class="emp-name">${e.name}</td>
-        <td><span class="pin-badge">${e.pin}</span></td>
-        <td><span class="emp-role">${e.role}</span></td>
-        <td><span class="status-badge ${e.status}">${e.status}</span></td>
-        <td>${e.annualDays}d</td>
-        <td><button class="action-btn-sm approve" onclick="openEditEmployee('${e.id}')">✏️</button> <button class="action-btn-sm reject" onclick="deleteEmployee('${e.id}','${e.name}')">🗑️</button></td>
-      </tr>`;
-    });
-    html += '</tbody></table></div>';
-    $('empContent').innerHTML = html;
-  } catch(e) { $('empContent').innerHTML='<p>Error loading employees</p>'; }
-}
-
-function openAddEmployee() {
-  openModal('➕ Add Employee', `
-    <div class="form-group"><label class="form-label">Name *</label><input type="text" id="newName" class="form-input" placeholder="e.g., JOHN"></div>
-    <div class="form-group"><label class="form-label">PIN (4 digits)</label><input type="text" id="newPin" class="form-input" placeholder="Auto-generated if empty" maxlength="4"></div>
-    <div class="form-group"><label class="form-label">Role</label><select id="newRole" class="form-select"><option value="employee">Employee</option><option value="admin">Admin</option></select></div>
-    <div class="form-group"><label class="form-label">Vacation Days</label><input type="number" id="newAnnual" class="form-input" value="22"></div>
-    <div class="form-group"><label class="form-label">Personal Days</label><input type="number" id="newPersonal" class="form-input" value="3"></div>
-    <div class="form-group"><label class="form-label">Expected Annual Hours</label><input type="number" id="newHours" class="form-input" value="1800"></div>
-    <div class="btn-row"><button class="cancel-btn" onclick="closeModal()">Cancel</button><button class="submit-btn" onclick="saveNewEmployee()">➕ Add</button></div>
-  `);
-}
-
-async function saveNewEmployee() {
-  const name = $('newName').value.trim();
-  if (!name) return showToast('Name is required','error');
-  try {
-    const r = await apiPost({
-      action:'addEmployee', name, pin:$('newPin').value||'',
-      role:$('newRole').value, annualDays:$('newAnnual').value,
-      personalDays:$('newPersonal').value, expectedHours:$('newHours').value
-    });
-    if (r.success) { showToast(r.message,'success'); closeModal(); renderEmployees($('mainContent')); }
-    else showToast(r.message,'error');
-  } catch(e) { showToast('Error adding employee','error'); }
-}
-
-function openEditEmployee(id) {
-  const emp = state.employees.find(e => e.id === id);
-  if (!emp) return;
-  openModal('✏️ Edit Employee', `
-    <div class="form-group"><label class="form-label">Name</label><input type="text" id="editName" class="form-input" value="${emp.name}"></div>
-    <div class="form-group"><label class="form-label">PIN</label><input type="text" id="editPin" class="form-input" value="${emp.pin}" maxlength="4"></div>
-    <div class="form-group"><label class="form-label">Role</label><select id="editRole" class="form-select"><option value="employee" ${emp.role==='employee'?'selected':''}>Employee</option><option value="admin" ${emp.role==='admin'?'selected':''}>Admin</option></select></div>
-    <div class="form-group"><label class="form-label">Status</label><select id="editStatus" class="form-select"><option value="Active" ${emp.status==='Active'?'selected':''}>Active</option><option value="Inactive" ${emp.status==='Inactive'?'selected':''}>Inactive</option></select></div>
-    <div class="form-group"><label class="form-label">Vacation Days</label><input type="number" id="editAnnual" class="form-input" value="${emp.annualDays}"></div>
-    <div class="form-group"><label class="form-label">Personal Days</label><input type="number" id="editPersonal" class="form-input" value="${emp.personalDays}"></div>
-    <div class="form-group"><label class="form-label">Expected Annual Hours</label><input type="number" id="editHours" class="form-input" value="${emp.expectedHours}"></div>
-    <div class="btn-row"><button class="cancel-btn" onclick="closeModal()">Cancel</button><button class="submit-btn" onclick="saveEditEmployee('${id}')">💾 Save</button></div>
-  `);
-}
-
-async function saveEditEmployee(id) {
-  try {
-    const r = await apiPost({
-      action:'editEmployee', id, name:$('editName').value, pin:$('editPin').value,
-      role:$('editRole').value, status:$('editStatus').value,
-      annualDays:$('editAnnual').value, personalDays:$('editPersonal').value,
-      expectedHours:$('editHours').value
-    });
-    if (r.success) { showToast('Employee updated','success'); closeModal(); renderEmployees($('mainContent')); }
-    else showToast(r.message,'error');
-  } catch(e) { showToast('Error','error'); }
-}
-
-async function deleteEmployee(id, name) {
-  if (!confirm(`Delete ${name}? This cannot be undone.`)) return;
-  try {
-    const r = await apiPost({ action:'deleteEmployee', employee:id });
-    if (r.success) { showToast('Employee deleted','success'); renderEmployees($('mainContent')); }
-    else showToast(r.message,'error');
-  } catch(e) { showToast('Error','error'); }
-}
-
-// Requests
-async function renderRequests(m) {
-  m.innerHTML = `<div class="page-header"><div><div class="page-title">🏖️ Time Off Requests</div><div class="page-subtitle">Approve or reject employee requests</div></div><button class="action-btn primary" onclick="renderRequests($('mainContent'))">🔄 Refresh</button></div><div id="reqContent"><div class="loading"><div class="spinner"></div><p>Loading...</p></div></div>`;
-  try {
-    const r = await apiPost({ action:'getPendingRequests' });
-    if (!r.success) { $('reqContent').innerHTML='<p>Error</p>'; return; }
-    state.pendingRequests = r.requests;
-    updatePendingBadge(r.requests.length);
-
-    if (!r.requests.length) {
-      $('reqContent').innerHTML='<div class="card"><div class="card-body"><div class="empty-state"><div class="empty-state-icon">✅</div><p>No pending requests</p></div></div></div>';
-      return;
-    }
-
-    let html = `<div class="card"><table><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th><th>Actions</th></tr></thead><tbody>`;
-    r.requests.forEach(req => {
-      const typeName = HOLIDAY_TYPES[req.type] || req.type;
-      html += `<tr>
-        <td class="emp-name">${req.employeeName}</td>
-        <td><span class="type-badge ${req.type}">${typeName}</span></td>
-        <td>${new Date(req.startDate).toLocaleDateString('en-US')}${req.startDate!==req.endDate?' - '+new Date(req.endDate).toLocaleDateString('en-US'):''}</td>
-        <td>${req.days}</td>
-        <td>${req.reason || '-'}</td>
-        <td>
-          <button class="action-btn-sm approve" onclick="handleRequest('${req.requestId}','approve')">✅</button>
-          <button class="action-btn-sm reject" onclick="handleRequest('${req.requestId}','reject')">❌</button>
-        </td>
-      </tr>`;
-    });
-    html += '</tbody></table></div>';
-    $('reqContent').innerHTML = html;
-  } catch(e) { $('reqContent').innerHTML='<p>Error loading requests</p>'; }
-}
-
-async function handleRequest(id, action) {
-  try {
-    const r = await apiPost({ action: action==='approve' ? 'approveHoliday' : 'rejectHoliday', requestId:id });
-    if (r.success) { showToast(`Request ${action}d`,'success'); renderRequests($('mainContent')); }
-    else showToast(r.message,'error');
-  } catch(e) { showToast('Error','error'); }
-}
-
-// Closures
-async function renderClosures(m) {
-  m.innerHTML = `<div class="page-header"><div><div class="page-title">🔒 Restaurant Closures</div><div class="page-subtitle">Holidays and closure days</div></div><button class="action-btn add" onclick="openAddClosure()">➕ Add Closure</button></div><div id="closureContent"><div class="loading"><div class="spinner"></div><p>Loading...</p></div></div>`;
-  try {
-    const r = await apiPost({ action:'getClosures' });
-    if (!r.success) { $('closureContent').innerHTML='<p>Error</p>'; return; }
-    state.closures = r.closures || [];
-    if (!state.closures.length) {
-      $('closureContent').innerHTML='<div class="card"><div class="card-body"><div class="empty-state"><div class="empty-state-icon">📅</div><p>No closures scheduled</p></div></div></div>';
-      return;
-    }
-    let html = '';
-    state.closures.forEach(c => {
-      html += `<div class="closure-item">
-        <div class="closure-info"><div class="closure-name">${c.name}</div><div class="closure-dates">${new Date(c.startDate).toLocaleDateString('en-US')} - ${new Date(c.endDate).toLocaleDateString('en-US')}</div></div>
-        <button class="closure-delete" onclick="deleteClosure('${c.closureId}')">🗑️</button>
-      </div>`;
-    });
-    $('closureContent').innerHTML = html;
-  } catch(e) { $('closureContent').innerHTML='<p>Error</p>'; }
-}
-
-function openAddClosure() {
-  openModal('➕ Add Closure', `
-    <div class="form-group"><label class="form-label">Name</label><input type="text" id="closureName" class="form-input" placeholder="e.g., New Year's Day"></div>
-    <div class="form-group"><label class="form-label">Start Date</label><input type="date" id="closureStart" class="form-input"></div>
-    <div class="form-group"><label class="form-label">End Date</label><input type="date" id="closureEnd" class="form-input"></div>
-    <div class="btn-row"><button class="cancel-btn" onclick="closeModal()">Cancel</button><button class="submit-btn" onclick="saveClosure()">➕ Add</button></div>
-  `);
-}
-
-async function saveClosure() {
-  const name=$('closureName').value, start=$('closureStart').value, end=$('closureEnd').value;
-  if (!name||!start||!end) return showToast('All fields required','error');
-  try {
-    const r = await apiPost({ action:'addClosure', name, startDate:start, endDate:end });
-    if (r.success) { showToast('Closure added','success'); closeModal(); renderClosures($('mainContent')); }
-    else showToast(r.message,'error');
-  } catch(e) { showToast('Error','error'); }
-}
-
-async function deleteClosure(id) {
-  if (!confirm('Delete this closure?')) return;
-  try {
-    const r = await apiPost({ action:'deleteClosure', closureId:id });
-    if (r.success) { showToast('Closure deleted','success'); renderClosures($('mainContent')); }
-    else showToast(r.message,'error');
-  } catch(e) { showToast('Error','error'); }
-}
-
-function updatePendingBadge(count) {
-  const b = $('pendingBadge');
-  if (count > 0) { b.textContent=count; b.style.display='inline'; }
-  else b.style.display='none';
-}
-
-// Init
-window.onload = () => { if (USER) render(); };
-</script></body>
+const API_URL='https://script.google.com/macros/s/AKfycbzNRsp18lbCt5rJrDFXHCZWCwRvBepq39lP-rmURbHxxWM0qwnFvXAnWp3V9eUZJX0y/exec';
+const USER=JSON.parse(sessionStorage.getItem('mikan_user')||'null');
+if(!USER||USER.role!=='admin')window.location.href='index.html';
+else document.getElementById('adminName').textContent=USER.name;
+const $=id=>document.getElementById(id);
+const showToast=(m,t='')=>{const e=$('toast');e.textContent=m;e.className=`toast ${t} show`;setTimeout(()=>e.classList.remove('show'),3000)};
+const HT={Annual:'Vacation',Personal:'Personal',Medical:'Sick Leave'};
+const S={section:'dashboard',year:new Date().getFullYear(),month:new Date().getMonth()+1,employees:[],dashboard:[],pending:[],closures:[],loaded:false,mk:''};
+async function api(d){return(await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(d)})).json();}
+function logout(){sessionStorage.removeItem('mikan_user');window.location.href='index.html';}
+async function loadAll(f){const k=`${S.year}-${S.month}`;if(S.loaded&&S.mk===k&&!f)return;try{const r=await api({action:'adminInit',year:String(S.year),month:String(S.month)});if(r.success){S.dashboard=r.dashboard;S.employees=r.employees;S.pending=r.pendingRequests;S.closures=r.closures;S.loaded=true;S.mk=k;updBadge(r.pendingRequests.length);}}catch(e){showToast('Error loading','error');}}
+function showSection(s){S.section=s;document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));$(`nav${s.charAt(0).toUpperCase()+s.slice(1)}`).classList.add('active');$('sidebar').classList.remove('open');render();}
+function render(){const m=$('mainContent');({dashboard:renderDash,employees:renderEmp,requests:renderReq,closures:renderClo})[S.section](m);}
+function openModal(t,h){$('modalTitle').textContent=t;$('modalBody').innerHTML=h;$('modalOverlay').classList.add('active');}
+function closeModal(){$('modalOverlay').classList.remove('active');}
+async function chgMonth(d){const n=new Date();if(d>0&&S.year===n.getFullYear()&&S.month===n.getMonth()+1)return;S.month+=d;if(S.month<1){S.month=12;S.year--;}else if(S.month>12){S.month=1;S.year++;}$('mainContent').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';await loadAll(true);render();}
+function mSel(){const d=new Date(S.year,S.month-1),n=new Date(),c=S.year===n.getFullYear()&&S.month===n.getMonth()+1;return`<div class="month-selector"><button class="month-nav-btn" onclick="chgMonth(-1)">‹</button><div class="month-display">${d.toLocaleDateString('en-US',{month:'long',year:'numeric'})}${c?'<span class="month-current">CURRENT</span>':''}</div><button class="month-nav-btn" onclick="chgMonth(1)" ${c?'disabled':''}>›</button></div>`;}
+function renderDash(m){const r=S.dashboard,te=r.length,th=r.reduce((s,e)=>s+e.monthHours,0),ah=te?th/te:0;m.innerHTML=`<div class="page-header"><div><div class="page-title">📊 Dashboard</div><div class="page-subtitle">Monthly hours overview</div></div><div style="display:flex;gap:8px">${mSel()}<button class="action-btn primary" onclick="refreshAll()">🔄</button></div></div><div class="stats-grid"><div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">${te}</div><div class="stat-label">Employees</div></div><div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-value">${th.toFixed(1)}h</div><div class="stat-label">Total Hours</div></div><div class="stat-card"><div class="stat-icon">📊</div><div class="stat-value">${ah.toFixed(1)}h</div><div class="stat-label">Avg Hours</div></div><div class="stat-card"><div class="stat-icon">📋</div><div class="stat-value">${S.pending.length}</div><div class="stat-label">Pending Requests</div></div></div><div class="card"><div class="card-header"><span class="card-title">👥 Employee Hours</span></div><table><thead><tr><th>Employee</th><th>Role</th><th>Days</th><th>Hours</th></tr></thead><tbody>${r.map(e=>`<tr><td class="emp-name">${e.name}</td><td><span class="emp-role">${e.role}</span></td><td>${e.daysWorked}</td><td><span class="hours-badge ${e.monthHours>=150?'good':e.monthHours>=100?'ok':'low'}">${e.monthHours.toFixed(1)}h</span></td></tr>`).join('')}</tbody></table></div>`;}
+function renderEmp(m){m.innerHTML=`<div class="page-header"><div><div class="page-title">👥 Employees</div><div class="page-subtitle">Manage your team</div></div><button class="action-btn add" onclick="addEmp()">➕ Add Employee</button></div><div class="card"><table><thead><tr><th>Name</th><th>PIN</th><th>Role</th><th>Status</th><th>Vacation</th><th>Actions</th></tr></thead><tbody>${S.employees.map(e=>`<tr><td class="emp-name">${e.name}</td><td><span class="pin-badge">${e.pin}</span></td><td><span class="emp-role">${e.role}</span></td><td><span class="status-badge ${e.status}">${e.status}</span></td><td>${e.annualDays}d</td><td><button class="action-btn-sm approve" onclick="editEmp('${e.id}')">✏️</button> <button class="action-btn-sm reject" onclick="delEmp('${e.id}','${e.name}')">🗑️</button></td></tr>`).join('')}</tbody></table></div>`;}
+function renderReq(m){let h=`<div class="page-header"><div><div class="page-title">🏖️ Time Off Requests</div></div><button class="action-btn primary" onclick="refreshAll()">🔄 Refresh</button></div>`;if(!S.pending.length){m.innerHTML=h+'<div class="card"><div class="card-body"><div class="empty-state"><div class="empty-state-icon">✅</div><p>No pending requests</p></div></div></div>';return;}h+=`<div class="card"><table><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th><th>Actions</th></tr></thead><tbody>${S.pending.map(r=>`<tr><td class="emp-name">${r.employeeName}</td><td><span class="type-badge ${r.type}">${HT[r.type]||r.type}</span></td><td>${new Date(r.startDate).toLocaleDateString('en-US')}${r.startDate!==r.endDate?' - '+new Date(r.endDate).toLocaleDateString('en-US'):''}</td><td>${r.days}</td><td>${r.reason||'-'}</td><td><button class="action-btn-sm approve" onclick="actReq('${r.requestId}','approve')">✅</button> <button class="action-btn-sm reject" onclick="actReq('${r.requestId}','reject')">❌</button></td></tr>`).join('')}</tbody></table></div>`;m.innerHTML=h;}
+function renderClo(m){let h=`<div class="page-header"><div><div class="page-title">🔒 Restaurant Closures</div></div><button class="action-btn add" onclick="addClo()">➕ Add Closure</button></div>`;if(!S.closures.length){m.innerHTML=h+'<div class="card"><div class="card-body"><div class="empty-state"><div class="empty-state-icon">📅</div><p>No closures scheduled</p></div></div></div>';return;}S.closures.forEach(c=>{h+=`<div class="closure-item"><div class="closure-info"><div class="closure-name">${c.name}</div><div class="closure-dates">${new Date(c.startDate).toLocaleDateString('en-US')} - ${new Date(c.endDate).toLocaleDateString('en-US')}</div></div><button class="closure-delete" onclick="delClo('${c.closureId}')">🗑️</button></div>`;});m.innerHTML=h;}
+async function refreshAll(){$('mainContent').innerHTML='<div class="loading"><div class="spinner"></div><p>Refreshing...</p></div>';await loadAll(true);render();}
+function addEmp(){openModal('➕ Add Employee',`<div class="form-group"><label class="form-label">Name *</label><input type="text" id="nN" class="form-input" placeholder="e.g., JOHN"></div><div class="form-group"><label class="form-label">PIN (4 digits)</label><input type="text" id="nP" class="form-input" placeholder="Auto-generated" maxlength="4"></div><div class="form-group"><label class="form-label">Role</label><select id="nR" class="form-select"><option value="employee">Employee</option><option value="admin">Admin</option></select></div><div class="form-group"><label class="form-label">Vacation Days</label><input type="number" id="nA" class="form-input" value="22"></div><div class="form-group"><label class="form-label">Personal Days</label><input type="number" id="nPD" class="form-input" value="3"></div><div class="form-group"><label class="form-label">Expected Annual Hours</label><input type="number" id="nH" class="form-input" value="1800"></div><div class="btn-row"><button class="cancel-btn" onclick="closeModal()">Cancel</button><button class="submit-btn" onclick="saveAdd()">➕ Add</button></div>`);}
+async function saveAdd(){const n=$('nN').value.trim();if(!n)return showToast('Name required','error');try{const r=await api({action:'addEmployee',name:n,pin:$('nP').value||'',role:$('nR').value,annualDays:$('nA').value,personalDays:$('nPD').value,expectedHours:$('nH').value});if(r.success){showToast(r.message,'success');closeModal();await loadAll(true);render();}else showToast(r.message,'error');}catch(e){showToast('Error','error');}}
+function editEmp(id){const e=S.employees.find(x=>x.id===id);if(!e)return;openModal('✏️ Edit Employee',`<div class="form-group"><label class="form-label">Name</label><input type="text" id="eN" class="form-input" value="${e.name}"></div><div class="form-group"><label class="form-label">PIN</label><input type="text" id="eP" class="form-input" value="${e.pin}" maxlength="4"></div><div class="form-group"><label class="form-label">Role</label><select id="eR" class="form-select"><option value="employee" ${e.role==='employee'?'selected':''}>Employee</option><option value="admin" ${e.role==='admin'?'selected':''}>Admin</option></select></div><div class="form-group"><label class="form-label">Status</label><select id="eS" class="form-select"><option value="Active" ${e.status==='Active'?'selected':''}>Active</option><option value="Inactive" ${e.status==='Inactive'?'selected':''}>Inactive</option></select></div><div class="form-group"><label class="form-label">Vacation Days</label><input type="number" id="eA" class="form-input" value="${e.annualDays}"></div><div class="form-group"><label class="form-label">Personal Days</label><input type="number" id="ePD" class="form-input" value="${e.personalDays}"></div><div class="form-group"><label class="form-label">Expected Annual Hours</label><input type="number" id="eH" class="form-input" value="${e.expectedHours}"></div><div class="btn-row"><button class="cancel-btn" onclick="closeModal()">Cancel</button><button class="submit-btn" onclick="saveEdit('${id}')">💾 Save</button></div>`);}
+async function saveEdit(id){try{const r=await api({action:'editEmployee',id,name:$('eN').value,pin:$('eP').value,role:$('eR').value,status:$('eS').value,annualDays:$('eA').value,personalDays:$('ePD').value,expectedHours:$('eH').value});if(r.success){showToast('Updated','success');closeModal();await loadAll(true);render();}else showToast(r.message,'error');}catch(e){showToast('Error','error');}}
+async function delEmp(id,n){if(!confirm(`Delete ${n}?`))return;try{const r=await api({action:'deleteEmployee',employee:id});if(r.success){showToast('Deleted','success');await loadAll(true);render();}else showToast(r.message,'error');}catch(e){showToast('Error','error');}}
+async function actReq(id,a){try{const r=await api({action:a==='approve'?'approveHoliday':'rejectHoliday',requestId:id});if(r.success){showToast(`Request ${a}d`,'success');await loadAll(true);render();}else showToast(r.message,'error');}catch(e){showToast('Error','error');}}
+function addClo(){openModal('➕ Add Closure',`<div class="form-group"><label class="form-label">Name</label><input type="text" id="cN" class="form-input" placeholder="e.g., New Year's Day"></div><div class="form-group"><label class="form-label">Start Date</label><input type="date" id="cS" class="form-input"></div><div class="form-group"><label class="form-label">End Date</label><input type="date" id="cE" class="form-input"></div><div class="btn-row"><button class="cancel-btn" onclick="closeModal()">Cancel</button><button class="submit-btn" onclick="saveClo()">➕ Add</button></div>`);}
+async function saveClo(){const n=$('cN').value,s=$('cS').value,e=$('cE').value;if(!n||!s||!e)return showToast('All fields required','error');try{const r=await api({action:'addClosure',name:n,startDate:s,endDate:e});if(r.success){showToast('Added','success');closeModal();await loadAll(true);render();}else showToast(r.message,'error');}catch(e){showToast('Error','error');}}
+async function delClo(id){if(!confirm('Delete?'))return;try{const r=await api({action:'deleteClosure',closureId:id});if(r.success){showToast('Deleted','success');await loadAll(true);render();}else showToast(r.message,'error');}catch(e){showToast('Error','error');}}
+function updBadge(c){const b=$('pendingBadge');if(c>0){b.textContent=c;b.style.display='inline';}else b.style.display='none';}
+window.onload=async()=>{if(!USER)return;$('mainContent').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';await loadAll();render();};
+</script>
+</body>
 </html>
