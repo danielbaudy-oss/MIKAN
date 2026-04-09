@@ -70,6 +70,12 @@ const SB_URL = 'https://kxbmlsbxnzvgzucxleoy.supabase.co';
 const SB_KEY = 'sb_publishable_qLmpXx5qeCO0cIdNqDMzeQ_HnLH4VS_';
 const _sbClient = supabase.createClient(SB_URL, SB_KEY);
 
+async function initAuth() {
+  const { data: session } = await _sbClient.auth.getSession();
+  if (!session?.session) await _sbClient.auth.signInAnonymously();
+}
+initAuth();
+
 let pin = '';
 let isLoading = false;
 
@@ -107,6 +113,7 @@ async function doLogin() {
   document.getElementById('errorMsg').innerHTML = '<div class="loading-spinner"></div>';
   
   try {
+    await initAuth();
     const { data: rows, error } = await _sbClient.from('employees').select('id,name,role,pin').eq('pin', pin).eq('status', 'Active');
     if (error) throw error;
     

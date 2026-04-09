@@ -9,8 +9,15 @@ const SUPABASE_URL = 'https://kxbmlsbxnzvgzucxleoy.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_qLmpXx5qeCO0cIdNqDMzeQ_HnLH4VS_';
 
 let _sb = null;
-function getSB() {
-  if (!_sb) _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+async function getSB() {
+  if (!_sb) {
+    _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // Sign in anonymously to get write access through RLS
+    const { data: session } = await _sb.auth.getSession();
+    if (!session?.session) {
+      await _sb.auth.signInAnonymously();
+    }
+  }
   return _sb;
 }
 
@@ -20,7 +27,7 @@ function getSB() {
 const API = {
   // AUTH
   async login(pin) {
-    const { data, error } = await getSB().from('employees').select('id,name,role,pin').eq('pin', pin).eq('status', 'Active');
+    const { data, error } = await (await getSB()).from('employees').select('id,name,role,pin').eq('pin', pin).eq('status', 'Active');
     if (error) throw error;
     if (!data.length) return { success: false, message: 'Invalid PIN or inactive account' };
     return { success: true, employee: data[0] };
@@ -28,12 +35,12 @@ const API = {
 
   // PUNCHES
   async getDayData(employeeId, date) {
-    const { data: punches, error } = await getSB().from('punches')
+    const { data: punches, error } = await (await getSB()).from('punches')
       .select('id,punch_time,punch_type')
       .eq('employee_id', employeeId).eq('punch_date', date).eq('is_deleted', false)
       .order('punch_time');
     if (error) throw error;
-    const { data: closures } = await getSB().from('closures')
+    const { data: closures } = await (await getSB()).from('closures')
       .select('name').lte('start_date', date).gte('end_date', date);
     return {
       success: true,
@@ -43,10 +50,10 @@ const API = {
   },
 
   async addPunch(employeeId, name, date, time) {
-    const { data: existing } = await getSB().from('punches')
+    const { data: existing } = await (await getSB()).from('punches')
       .select('id').eq('employee_id', employeeId).eq('punch_date', date).eq('is_deleted', false);
     const punchType = (existing||[]).length % 2 === 0 ? 'IN' : 'OUT';
-    const { data, error } = await getSB().from('punches').insert({
+    const { data, error } = await (await getSB()).from('punches').insert({
       employee_id: employeeId, employee_name: name,
       punch_date: date, punch_time: time, punch_type: punchType
     }).select();
@@ -59,13 +66,13 @@ const API = {
   },
 
   async editPunch(punchId, newTime) {
-    const { error } = await getSB().from('punches').update({ punch_time: newTime }).eq('id', punchId);
+    const { error } = await (await getSB()).from('punches').update({ punch_time: newTime }).eq('id', punchId);
     if (error) throw error;
     return { success: true, message: 'Punch updated' };
   },
 
   async deletePunch(punchId) {
-    const { error } = await getSB().from('punches').update({
+    const { error } = await (await getSB()).from('punches').update({
       is_deleted: true, deleted_at: new Date().toISOString(), deleted_reason: 'Deleted by user'
     }).eq('id', punchId);
     if (error) throw error;
@@ -76,7 +83,7 @@ const API = {
     const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
     const lastDay = new Date(year, month, 0).getDate();
     const endDate = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
-    const { data, error } = await getSB().from('punches')
+    const { data, error } = await (await getSB()).from('punches')
       .select('punch_date').eq('employee_id', employeeId)
       .gte('punch_date', startDate).lte('punch_date', endDate).eq('is_deleted', false);
     if (error) throw error;
@@ -87,10 +94,10 @@ const API = {
 
   // HOLIDAYS
   async getHolidaySummary(employeeId) {
-    const { data: empArr } = await getSB().from('employees').select('*').eq('id', employeeId);
+    const { data: empArr } = await (await getSB()).from('employees').select('*').eq('id', employeeId);
     const emp = empArr?.[0];
     if (!emp) return { success: false, message: 'Employee not found' };
-    const { data: requests } = await getSB().from('holidays').select('*').eq('employee_id', employeeId).order('created_at', { ascending: false });
+    const { data: requests } = await (await getSB()).from('holidays').select('*').eq('employee_id', employeeId).order('created_at', { ascending: false });
     const rr = requests || [];
     const count = (type, status) => rr.filter(r => r.type === type && r.status === status).reduce((s, r) => s + r.days, 0);
     return {
@@ -112,7 +119,7 @@ const API = {
   async submitHoliday(employeeId, name, type, startDate, endDate, reason) {
     const s = new Date(startDate), e = new Date(endDate);
     const totalDays = Math.floor((e - s) / 86400000) + 1;
-    const { data, error } = await getSB().from('holidays').insert({
+    const { data, error } = await (await getSB()).from('holidays').insert({
       employee_id: employeeId, employee_name: name, type,
       start_date: startDate, end_date: endDate, days: totalDays, reason: reason || null
     }).select();
@@ -122,24 +129,24 @@ const API = {
 
   // CLOSURES
   async getClosures() {
-    const { data, error } = await getSB().from('closures').select('*').order('start_date');
+    const { data, error } = await (await getSB()).from('closures').select('*').order('start_date');
     if (error) throw error;
     return { success: true, closures: (data||[]).map(c => ({ closureId: c.id, name: c.name, startDate: c.start_date, endDate: c.end_date })) };
   },
   async addClosure(name, startDate, endDate) {
-    const { data, error } = await getSB().from('closures').insert({ name, start_date: startDate, end_date: endDate }).select();
+    const { data, error } = await (await getSB()).from('closures').insert({ name, start_date: startDate, end_date: endDate }).select();
     if (error) throw error;
     return { success: true, closureId: data[0].id, message: 'Closure added' };
   },
   async deleteClosure(id) {
-    const { error } = await getSB().from('closures').delete().eq('id', id);
+    const { error } = await (await getSB()).from('closures').delete().eq('id', id);
     if (error) throw error;
     return { success: true, message: 'Closure deleted' };
   },
 
   // EMPLOYEES
   async getEmployees() {
-    const { data, error } = await getSB().from('employees').select('*').order('name');
+    const { data, error } = await (await getSB()).from('employees').select('*').order('name');
     if (error) throw error;
     return { success: true, employees: (data||[]).map(e => ({
       id: e.id, name: e.name, pin: e.pin, role: e.role, status: e.status,
@@ -151,9 +158,9 @@ const API = {
     const name = (params.name||'').toUpperCase().trim();
     if (!name) return { success: false, message: 'Name is required' };
     const pin = params.pin || String(Math.floor(1000 + Math.random() * 9000));
-    const { data: existing } = await getSB().from('employees').select('id').eq('pin', pin);
+    const { data: existing } = await (await getSB()).from('employees').select('id').eq('pin', pin);
     if (existing?.length) return { success: false, message: 'PIN already in use' };
-    const { data, error } = await getSB().from('employees').insert({
+    const { data, error } = await (await getSB()).from('employees').insert({
       name, pin, role: params.role||'employee',
       annual_days: params.annualDays||30, personal_days: params.personalDays||2,
       expected_hours: params.expectedHours||1776, medical_hours: params.medicalHours||20
@@ -165,7 +172,7 @@ const API = {
     const data = {};
     if (params.name) data.name = params.name.toUpperCase();
     if (params.pin) {
-      const { data: existing } = await getSB().from('employees').select('id').eq('pin', params.pin).neq('id', params.id);
+      const { data: existing } = await (await getSB()).from('employees').select('id').eq('pin', params.pin).neq('id', params.id);
       if (existing?.length) return { success: false, message: 'PIN already in use' };
       data.pin = params.pin;
     }
@@ -175,24 +182,24 @@ const API = {
     if (params.personalDays !== undefined) data.personal_days = Number(params.personalDays);
     if (params.expectedHours !== undefined) data.expected_hours = Number(params.expectedHours);
     if (params.medicalHours !== undefined) data.medical_hours = Number(params.medicalHours);
-    const { error } = await getSB().from('employees').update(data).eq('id', params.id);
+    const { error } = await (await getSB()).from('employees').update(data).eq('id', params.id);
     if (error) throw error;
     return { success: true, message: 'Employee updated' };
   },
   async deleteEmployee(id) {
-    const { error } = await getSB().from('employees').delete().eq('id', id);
+    const { error } = await (await getSB()).from('employees').delete().eq('id', id);
     if (error) throw error;
     return { success: true, message: 'Employee deleted' };
   },
 
   // ADMIN
   async approveHoliday(id) {
-    const { error } = await getSB().from('holidays').update({ status: 'Approved', updated_at: new Date().toISOString() }).eq('id', id);
+    const { error } = await (await getSB()).from('holidays').update({ status: 'Approved', updated_at: new Date().toISOString() }).eq('id', id);
     if (error) throw error;
     return { success: true, message: 'Request approved' };
   },
   async rejectHoliday(id) {
-    const { error } = await getSB().from('holidays').update({ status: 'Rejected', updated_at: new Date().toISOString() }).eq('id', id);
+    const { error } = await (await getSB()).from('holidays').update({ status: 'Rejected', updated_at: new Date().toISOString() }).eq('id', id);
     if (error) throw error;
     return { success: true, message: 'Request rejected' };
   },
@@ -203,12 +210,13 @@ const API = {
     const lastDay = new Date(year, month, 0).getDate();
     const endDate = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
 
+    const sb = await getSB();
     const [empRes, punchRes, pendRes, appRes, cloRes] = await Promise.all([
-      getSB().from('employees').select('*').order('name'),
-      getSB().from('punches').select('employee_id,punch_date,punch_time,punch_type').gte('punch_date', startDate).lte('punch_date', endDate).eq('is_deleted', false).order('punch_time'),
-      getSB().from('holidays').select('*').eq('status', 'Pending').order('created_at', { ascending: false }),
-      getSB().from('holidays').select('*').eq('status', 'Approved').order('created_at', { ascending: false }),
-      getSB().from('closures').select('*').order('start_date')
+      sb.from('employees').select('*').order('name'),
+      sb.from('punches').select('employee_id,punch_date,punch_time,punch_type').gte('punch_date', startDate).lte('punch_date', endDate).eq('is_deleted', false).order('punch_time'),
+      sb.from('holidays').select('*').eq('status', 'Pending').order('created_at', { ascending: false }),
+      sb.from('holidays').select('*').eq('status', 'Approved').order('created_at', { ascending: false }),
+      sb.from('closures').select('*').order('start_date')
     ]);
 
     const employees = empRes.data || [];
