@@ -332,19 +332,22 @@ async function saveAdminPunch(date){
 }
 
 function adminEditPunch(id,time,date){
-  const html=`<div class="fg"><label class="fl">Time</label><input type="time" id="epTime" class="fi" value="${time}" style="font-size:22px;text-align:center;font-weight:700"></div><div class="btn-row"><button class="btn-cancel" onclick="openDayDetail('${date}')">Cancel</button><button class="btn-save" id="epSave" onclick="saveAdminEdit('${id}','${date}')">💾 Save</button></div>`;
+  const html=`<div class="fg"><label class="fl">Time</label><input type="time" id="epTime" class="fi" value="${time}" style="font-size:22px;text-align:center;font-weight:700"></div><div class="fg"><label class="fl">Reason *</label><input type="text" id="epReason" class="fi" placeholder="Reason for change"></div><div class="btn-row"><button class="btn-cancel" onclick="openDayDetail('${date}')">Cancel</button><button class="btn-save" id="epSave" onclick="saveAdminEdit('${id}','${date}')">💾 Save</button></div>`;
   $('mBody').innerHTML=`<button class="btn btn-primary" onclick="openDayDetail('${date}')" style="margin-bottom:12px;font-size:12px">← Back</button><div style="font-weight:600;margin-bottom:12px">Edit Punch</div>${html}`;
 }
 async function saveAdminEdit(id,date){
   const time=$('epTime').value;if(!time)return toast('Select a time','error');
+  const reason=$('epReason').value.trim();if(!reason)return toast('Please provide a reason','error');
   const btn=$('epSave');btn.disabled=true;btn.textContent='⏳';
-  try{const r=await api({action:'editPunch',punchId:id,time,employee:S.selEmp.id});
+  try{const r=await api({action:'editPunch',punchId:id,time,reason,employee:S.selEmp.id});
   if(r.success){toast('Updated','success');await openDayDetail(date);}else{toast(r.message,'error');btn.disabled=false;btn.textContent='💾 Save';}}
   catch(e){toast('Error','error');btn.disabled=false;btn.textContent='💾 Save';}
-}async function adminDelPunch(id,date){
-  if(!confirm('Delete this punch?'))return;
+}
+async function adminDelPunch(id,date){
+  const reason=prompt('Reason for deleting this punch:');
+  if(!reason)return;
   const el=document.getElementById(`adp-${id}`);if(el)el.style.opacity='0.4';
-  try{const r=await api({action:'deletePunch',punchId:id,employee:S.selEmp.id});
+  try{const r=await api({action:'deletePunch',punchId:id,reason,employee:S.selEmp.id});
   if(r.success){toast('Deleted','success');await openDayDetail(date);}else{toast(r.message,'error');if(el)el.style.opacity='1';}}
   catch(e){toast('Error','error');if(el)el.style.opacity='1';}
 }

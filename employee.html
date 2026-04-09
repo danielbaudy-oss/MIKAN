@@ -241,6 +241,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="edit-modal" onclick="event.stopPropagation()">
     <h3>✏️ Edit Punch</h3>
     <input type="time" class="edit-time-input" id="editTimeInput">
+    <input type="text" class="form-input" id="editReason" placeholder="Reason for change *" style="margin-bottom:12px;font-size:13px">
     <div class="edit-actions">
       <button class="edit-btn cancel" onclick="closeOverlay(null,'edit')">Cancel</button>
       <button class="edit-btn save" onclick="saveEdit()">Save</button>
@@ -476,20 +477,24 @@ function cancelDelete(id) {
   $(`actions-${id}`).style.display='flex';
 }
 async function confirmDelete(id) {
+  const reason = prompt('Reason for deleting this punch:');
+  if (!reason) return cancelDelete(id);
   try {
-    const r = await apiPost({ action:'deletePunch', punchId:id, employee:USER.id });
+    const r = await apiPost({ action:'deletePunch', punchId:id, reason, employee:USER.id });
     if (r.success) { showToast('Punch deleted','success'); invalidateDayCache(U.formatDate(S.currentDate)); loadDayData(true); }
     else showToast(r.message,'error');
   } catch(e) { showToast('Error','error'); }
 }
 
 // Edit
-function openEdit(id, time) { S.editingPunchId=id; $('editTimeInput').value=time; openOverlay('edit'); }
+function openEdit(id, time) { S.editingPunchId=id; $('editTimeInput').value=time; if($('editReason'))$('editReason').value=''; openOverlay('edit'); }
 async function saveEdit() {
   const time = $('editTimeInput').value;
+  const reason = $('editReason').value.trim();
   if (!time) return showToast('Select a time','error');
+  if (!reason) return showToast('Please provide a reason','error');
   try {
-    const r = await apiPost({ action:'editPunch', punchId:S.editingPunchId, time, employee:USER.id });
+    const r = await apiPost({ action:'editPunch', punchId:S.editingPunchId, time, reason, employee:USER.id });
     if (r.success) { showToast('Punch updated','success'); closeOverlay(null,'edit'); invalidateDayCache(U.formatDate(S.currentDate)); loadDayData(true); }
     else showToast(r.message,'error');
   } catch(e) { showToast('Error','error'); }
