@@ -64,8 +64,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 
 <script>
-// *** SET YOUR GOOGLE APPS SCRIPT WEB APP URL HERE ***
-const API_URL = 'https://script.google.com/macros/s/AKfycbzNRsp18lbCt5rJrDFXHCZWCwRvBepq39lP-rmURbHxxWM0qwnFvXAnWp3V9eUZJX0y/exec';
+// Supabase config
+const SB_URL = 'https://kxbmlsbxnzvgzucxleoy.supabase.co';
+const SB_KEY = 'sb_publishable_qLmpXx5qeCO0cIdNqDMzeQ_HnLH4VS_';
+const SB_HDR = { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` };
 
 let pin = '';
 let isLoading = false;
@@ -104,21 +106,15 @@ async function doLogin() {
   document.getElementById('errorMsg').innerHTML = '<div class="loading-spinner"></div>';
   
   try {
-    const res = await fetch(API_URL + '?action=login&pin=' + encodeURIComponent(pin));
-    const data = await res.json();
+    const res = await fetch(`${SB_URL}/rest/v1/employees?pin=eq.${pin}&status=eq.Active&select=id,name,role,pin`, { headers: SB_HDR });
+    const rows = await res.json();
     
-    if (data.success) {
-      // Store session
-      sessionStorage.setItem('mikan_user', JSON.stringify(data.employee));
-      
-      // Route based on role
-      if (data.employee.role === 'admin') {
-        window.location.href = 'admin.html';
-      } else {
-        window.location.href = 'employee.html';
-      }
+    if (rows.length) {
+      sessionStorage.setItem('mikan_user', JSON.stringify(rows[0]));
+      if (rows[0].role === 'admin') window.location.href = 'admin.html';
+      else window.location.href = 'employee.html';
     } else {
-      showError(data.message || 'Invalid PIN');
+      showError('Invalid PIN');
     }
   } catch (err) {
     showError('Connection error. Try again.');
@@ -133,7 +129,6 @@ function showError(msg) {
   setTimeout(() => { pin = ''; updateDots(); }, 600);
 }
 
-// Check if already logged in
 window.onload = () => {
   const user = sessionStorage.getItem('mikan_user');
   if (user) {

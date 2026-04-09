@@ -139,15 +139,31 @@ tbody tr{transition:all .15s}tbody tr:hover{background:rgba(233,181,149,0.2)}
 <div class="modal-bg" id="modalBg"><div class="modal" id="modal"><div class="modal-hd"><h2 id="mTitle"></h2><button class="modal-x" onclick="closeModal()">✕</button></div><div class="modal-bd" id="mBody"></div></div></div>
 <div class="toast" id="toast"></div>
 
+<script src="supabase-api.js"></script>
 <script>
-const API='https://script.google.com/macros/s/AKfycbzNRsp18lbCt5rJrDFXHCZWCwRvBepq39lP-rmURbHxxWM0qwnFvXAnWp3V9eUZJX0y/exec';
 const U=JSON.parse(sessionStorage.getItem('mikan_user')||'null');
 if(!U||U.role!=='admin')window.location.href='index.html';
 else document.getElementById('adminName').textContent=U.name;
 const $=id=>document.getElementById(id);
 const toast=(m,t='')=>{const e=$('toast');e.textContent=m;e.className=`toast ${t} show`;setTimeout(()=>e.classList.remove('show'),3000)};
 const HT={Annual:'Vacation',Personal:'Personal',Medical:'Sick Leave',MedAppt:'Med. Visit'};
-async function api(d){try{const c=new AbortController();const t=setTimeout(()=>c.abort(),30000);const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(d),signal:c.signal});clearTimeout(t);return r.json();}catch(e){if(e.name==='AbortError')throw new Error('Request timed out');throw e;}}
+async function api(d){
+  const a=d.action;
+  if(a==='adminInit') return API.adminInit(parseInt(d.year),parseInt(d.month));
+  if(a==='addEmployee') return API.addEmployee(d);
+  if(a==='editEmployee') return API.editEmployee(d);
+  if(a==='deleteEmployee') return API.deleteEmployee(d.employee);
+  if(a==='approveHoliday') return API.approveHoliday(d.requestId);
+  if(a==='rejectHoliday') return API.rejectHoliday(d.requestId);
+  if(a==='addClosure') return API.addClosure(d.name,d.startDate,d.endDate);
+  if(a==='deleteClosure') return API.deleteClosure(d.closureId);
+  if(a==='getDayData') return API.getDayData(d.employee,d.date);
+  if(a==='getPunchedDays') return API.getPunchedDays(d.employee,d.year,d.month);
+  if(a==='addPunch') return API.addPunch(d.employee,d.name,d.date,d.time);
+  if(a==='editPunch') return API.editPunch(d.punchId,d.time);
+  if(a==='deletePunch') return API.deletePunch(d.punchId);
+  throw new Error('Unknown action: '+a);
+}
 function logout(){sessionStorage.removeItem('mikan_user');window.location.href='index.html';}
 
 const S={sec:'hours',yr:new Date().getFullYear(),mo:new Date().getMonth()+1,emps:[],dash:[],pending:[],closures:[],paidHrs:[],loaded:false,mk:'',search:'',selEmp:null,calDate:null,empPunched:{}};
