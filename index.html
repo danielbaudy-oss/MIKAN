@@ -63,11 +63,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="error-msg" id="errorMsg"></div>
   </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // Supabase config
 const SB_URL = 'https://kxbmlsbxnzvgzucxleoy.supabase.co';
 const SB_KEY = 'sb_publishable_qLmpXx5qeCO0cIdNqDMzeQ_HnLH4VS_';
-const SB_HDR = { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` };
+const _sbClient = supabase.createClient(SB_URL, SB_KEY);
 
 let pin = '';
 let isLoading = false;
@@ -106,8 +107,8 @@ async function doLogin() {
   document.getElementById('errorMsg').innerHTML = '<div class="loading-spinner"></div>';
   
   try {
-    const res = await fetch(`${SB_URL}/rest/v1/employees?pin=eq.${pin}&status=eq.Active&select=id,name,role,pin`, { headers: SB_HDR });
-    const rows = await res.json();
+    const { data: rows, error } = await _sbClient.from('employees').select('id,name,role,pin').eq('pin', pin).eq('status', 'Active');
+    if (error) throw error;
     
     if (rows.length) {
       sessionStorage.setItem('mikan_user', JSON.stringify(rows[0]));
