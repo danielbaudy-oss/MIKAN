@@ -6,18 +6,11 @@
 // const supabase is initialized after the CDN script loads
 
 const SUPABASE_URL = 'https://kxbmlsbxnzvgzucxleoy.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_qLmpXx5qeCO0cIdNqDMzeQ_HnLH4VS_';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4Ym1sc2J4bnp2Z3p1Y3hsZW95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzE3ODgsImV4cCI6MjA5MTI0Nzc4OH0.OrKHnYy0vElWI9bQ-xYlE2RXy1TU2FknBPafp--3jMY';
 
 let _sb = null;
 async function getSB() {
-  if (!_sb) {
-    _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    // Sign in anonymously to get write access through RLS
-    const { data: session } = await _sb.auth.getSession();
-    if (!session?.session) {
-      await _sb.auth.signInAnonymously();
-    }
-  }
+  if (!_sb) _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   return _sb;
 }
 

@@ -67,14 +67,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <script>
 // Supabase config
 const SB_URL = 'https://kxbmlsbxnzvgzucxleoy.supabase.co';
-const SB_KEY = 'sb_publishable_qLmpXx5qeCO0cIdNqDMzeQ_HnLH4VS_';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4Ym1sc2J4bnp2Z3p1Y3hsZW95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzE3ODgsImV4cCI6MjA5MTI0Nzc4OH0.OrKHnYy0vElWI9bQ-xYlE2RXy1TU2FknBPafp--3jMY';
 const _sbClient = supabase.createClient(SB_URL, SB_KEY);
-
-async function initAuth() {
-  const { data: session } = await _sbClient.auth.getSession();
-  if (!session?.session) await _sbClient.auth.signInAnonymously();
-}
-initAuth();
 
 let pin = '';
 let isLoading = false;
@@ -113,7 +107,6 @@ async function doLogin() {
   document.getElementById('errorMsg').innerHTML = '<div class="loading-spinner"></div>';
   
   try {
-    await initAuth();
     const { data: rows, error } = await _sbClient.from('employees').select('id,name,role,pin').eq('pin', pin).eq('status', 'Active');
     if (error) throw error;
     
