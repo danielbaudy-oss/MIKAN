@@ -299,9 +299,9 @@ const showToast=(msg,type='')=>{const t=$('toast');t.textContent=msg;t.className
 async function apiPost(data) {
   const a = data.action;
   if (a==='getDayData') return API.getDayData(data.employee, data.date);
-  if (a==='addPunch') return API.addPunch(data.employee, data.name, data.date, data.time);
-  if (a==='editPunch') return API.editPunch(data.punchId, data.time);
-  if (a==='deletePunch') return API.deletePunch(data.punchId);
+  if (a==='addPunch') return API.addPunch(data.employee, data.name, data.date, data.time, data.lat, data.lng);
+  if (a==='editPunch') return API.editPunch(data.punchId, data.time, data.reason);
+  if (a==='deletePunch') return API.deletePunch(data.punchId, data.reason);
   if (a==='getPunchedDays') return API.getPunchedDays(data.employee, data.year, data.month);
   if (a==='getHolidaySummary') return API.getHolidaySummary(data.employee);
   if (a==='submitHoliday') return API.submitHoliday(data.employee, data.name, data.type, data.startDate, data.endDate, data.reason);
@@ -445,10 +445,20 @@ async function doPunch() {
   if (U.isTimeFuture(time)) { S.isPunching=false; return showToast('Cannot punch future time','error'); }
 
   const btn = document.querySelector('.punch-btn');
-  btn.disabled=true; btn.innerHTML='<span>⏳</span> Saving...';
+  btn.disabled=true; btn.innerHTML='Saving...';
+
+  // Capture GPS
+  let lat = null, lng = null;
+  try {
+    const pos = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000, maximumAge: 60000 });
+    });
+    lat = pos.coords.latitude;
+    lng = pos.coords.longitude;
+  } catch(e) { /* GPS not available or denied — continue without it */ }
 
   try {
-    const r = await apiPost({ action:'addPunch', employee:USER.id, name:USER.name, date:ds, time });
+    const r = await apiPost({ action:'addPunch', employee:USER.id, name:USER.name, date:ds, time, lat, lng });
     S.isPunching = false;
     if (r.success) { showToast(r.message,'success'); invalidateDayCache(ds); loadDayData(true); }
     else { showToast(r.message,'error'); btn.disabled=false; }

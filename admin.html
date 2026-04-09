@@ -161,8 +161,8 @@ async function api(d){
   if(a==='getDayData') return API.getDayData(d.employee,d.date);
   if(a==='getPunchedDays') return API.getPunchedDays(d.employee,d.year,d.month);
   if(a==='addPunch') return API.addPunch(d.employee,d.name,d.date,d.time);
-  if(a==='editPunch') return API.editPunch(d.punchId,d.time);
-  if(a==='deletePunch') return API.deletePunch(d.punchId);
+  if(a==='editPunch') return API.editPunch(d.punchId,d.time,d.reason);
+  if(a==='deletePunch') return API.deletePunch(d.punchId,d.reason);
   throw new Error('Unknown action: '+a);
 }
 function logout(){sessionStorage.removeItem('mikan_user');window.location.href='index.html';}

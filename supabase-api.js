@@ -42,14 +42,16 @@ const API = {
     };
   },
 
-  async addPunch(employeeId, name, date, time) {
+  async addPunch(employeeId, name, date, time, lat, lng) {
     const { data: existing } = await (await getSB()).from('punches')
       .select('id').eq('employee_id', employeeId).eq('punch_date', date).eq('is_deleted', false);
     const punchType = (existing||[]).length % 2 === 0 ? 'IN' : 'OUT';
-    const { data, error } = await (await getSB()).from('punches').insert({
+    const row = {
       employee_id: employeeId, employee_name: name,
       punch_date: date, punch_time: time, punch_type: punchType
-    }).select();
+    };
+    if (lat && lng) { row.latitude = lat; row.longitude = lng; }
+    const { data, error } = await (await getSB()).from('punches').insert(row).select();
     if (error) throw error;
     return {
       success: true,
@@ -58,15 +60,19 @@ const API = {
     };
   },
 
-  async editPunch(punchId, newTime) {
-    const { error } = await (await getSB()).from('punches').update({ punch_time: newTime }).eq('id', punchId);
+  async editPunch(punchId, newTime, reason) {
+    const { error } = await (await getSB()).from('punches').update({
+      punch_time: newTime, edited_at: new Date().toISOString(),
+      edit_reason: reason || 'Corrected by admin'
+    }).eq('id', punchId);
     if (error) throw error;
     return { success: true, message: 'Punch updated' };
   },
 
-  async deletePunch(punchId) {
+  async deletePunch(punchId, reason) {
     const { error } = await (await getSB()).from('punches').update({
-      is_deleted: true, deleted_at: new Date().toISOString(), deleted_reason: 'Deleted by user'
+      is_deleted: true, deleted_at: new Date().toISOString(),
+      deleted_reason: reason || 'Deleted by user'
     }).eq('id', punchId);
     if (error) throw error;
     return { success: true, message: 'Punch deleted' };
