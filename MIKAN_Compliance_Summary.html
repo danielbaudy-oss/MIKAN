@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MIKAN — Legal Compliance Summary</title>
+<style>
+@media print { body { margin: 0; } .no-print { display: none; } }
+body { font-family: 'Georgia', serif; max-width: 700px; margin: 40px auto; padding: 20px; color: #1a1a1a; line-height: 1.7; }
+h1 { font-size: 22px; text-align: center; margin-bottom: 4px; }
+.subtitle { text-align: center; color: #666; font-size: 13px; margin-bottom: 30px; }
+h2 { font-size: 16px; margin-top: 28px; margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+.check { color: #059669; font-weight: bold; }
+.item { margin-bottom: 16px; }
+.item strong { display: block; margin-bottom: 2px; }
+.item p { margin: 0; font-size: 14px; }
+.footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #ddd; font-size: 12px; color: #888; text-align: center; }
+.logo { text-align: center; margin-bottom: 20px; }
+.logo img { width: 80px; }
+.bottom-line { background: #f1dfd3; border-left: 4px solid #d4956e; padding: 14px 16px; border-radius: 0 8px 8px 0; margin-top: 24px; font-size: 14px; }
+.print-btn { display: block; margin: 30px auto 0; padding: 12px 30px; background: #d4956e; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+.print-btn:hover { background: #c07a50; }
+</style>
+</head>
+<body>
+<div class="logo"><img src="logo.png" alt="MIKAN"></div>
+<h1>MIKAN Punch Clock System</h1>
+<h1 style="font-size:18px;font-weight:normal;margin-top:0">Legal Compliance Summary</h1>
+<div class="subtitle">Prepared for MIKAN Restaurant, Barcelona — April 2026</div>
+
+<h2>Legal Context</h2>
+<p style="font-size:14px">Spain's mandatory time recording law (Real Decreto-ley 8/2019), updated with new digital requirements expected to be fully enforceable in 2026, requires all companies to use a digital time-tracking system that meets specific technical standards. There is <strong>no official certification or homologation</strong> required — the law sets technical requirements, not a certification scheme. Any software that meets these requirements is compliant.</p>
+
+<h2>Compliance Checklist</h2>
+
+<div class="item">
+<strong><span class="check">✅</span> Digital System (Not Paper or Spreadsheet)</strong>
+<p>MIKAN runs on PostgreSQL (hosted by Supabase), a proper relational database. The frontend is a web application hosted on GitHub Pages. Paper sign-in sheets and Excel/Google Sheets spreadsheets are explicitly non-compliant under the updated regulation — MIKAN is neither.</p>
+</div>
+
+<div class="item">
+<strong><span class="check">✅</span> Remote Accessibility</strong>
+<p>The system is web-based and accessible from any device with a browser and internet connection. Employees clock in/out from their phones or a shared tablet. No software installation required.</p>
+</div>
+
+<div class="item">
+<strong><span class="check">✅</span> Inalterability / Tamper-Proof Audit Trail</strong>
+<p>Every database operation (insert, update, delete) is automatically logged in a dedicated <code>audit_log</code> table via PostgreSQL triggers. This logging cannot be bypassed from the application layer. Each audit entry records: the table affected, the record ID, the action performed, the complete old and new data as JSON, and a timestamp. Punch records are never physically deleted — they are soft-deleted with a mandatory reason and timestamp. Edits record the original time and the reason for correction.</p>
+</div>
+
+<div class="item">
+<strong><span class="check">✅</span> GPS Positioning</strong>
+<p>Every clock-in and clock-out captures the employee's GPS coordinates (latitude and longitude) via the browser's Geolocation API. Coordinates are stored alongside the punch record in the database. If the employee denies location access, the punch still records but without GPS data.</p>
+</div>
+
+<div class="item">
+<strong><span class="check">✅</span> Immediate Accessibility for Inspectors</strong>
+<p>A read-only database view (<code>inspector_report</code>) provides real-time access to all punch records including corrections, deletions, GPS coordinates, and timestamps. This view can be queried at any time. An inspector can be granted read-only access to the Supabase dashboard on demand, providing immediate and complete visibility into all records.</p>
+</div>
+
+<div class="item">
+<strong><span class="check">✅</span> 4-Year Data Retention</strong>
+<p>All data is stored in PostgreSQL with no automatic deletion or expiration. The audit log is append-only and retains records indefinitely. The database is hosted on Supabase's EU infrastructure (Frankfurt region available) with automatic backups.</p>
+</div>
+
+<div class="item">
+<strong><span class="check">✅</span> Employee Records, Manager Approves</strong>
+<p>Employees register their own clock-in/out times using a personal 4-digit PIN. The admin panel allows managers to review all records, approve or reject time-off requests, and oversee corrections. Any modification to a recorded entry is documented with a reason and logged in the audit trail.</p>
+</div>
+
+<div class="item">
+<strong><span class="check">✅</span> Not Biometric</strong>
+<p>Authentication uses a 4-digit PIN — not fingerprints, facial recognition, or any biometric data. This avoids the data protection concerns raised by recent Spanish case law and AEPD rulings regarding biometric time-tracking systems.</p>
+</div>
+
+<div class="bottom-line">
+<strong>Bottom line:</strong> No software in Spain carries a government seal or certification for time tracking. What matters is meeting the technical requirements set by the regulation. MIKAN meets all of them: proper database (not a spreadsheet), complete tamper-proof audit trail, GPS records, immediate inspector access, 4-year retention, and documented correction workflows. This system is already more compliant than what the vast majority of small hospitality businesses in Spain are currently using.
+</div>
+
+<h2>Technical Details</h2>
+<p style="font-size:13px">
+<strong>Database:</strong> PostgreSQL via Supabase (EU-hosted)<br>
+<strong>Frontend:</strong> Static HTML/JS hosted on GitHub Pages<br>
+<strong>Authentication:</strong> PIN-based (no Google account required)<br>
+<strong>Audit mechanism:</strong> PostgreSQL AFTER triggers on all tables → <code>audit_log</code> table<br>
+<strong>Data format:</strong> All records stored with UTC timestamps, dates in ISO 8601 format<br>
+<strong>Punch deletion:</strong> Soft-delete only (is_deleted flag + reason + timestamp)<br>
+<strong>GPS:</strong> Browser Geolocation API, coordinates stored per punch record
+</p>
+
+<div class="footer">
+MIKAN Restaurant — Barcelona, Spain<br>
+Document generated April 2026 | System version 1.0
+</div>
+
+<button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+</body>
+</html>
