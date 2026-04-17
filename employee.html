@@ -105,7 +105,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .empty-state-text{color:var(--text-dim);font-size:13px}
 
 /* Holiday Summary */
-.holiday-summary{background:linear-gradient(135deg,var(--accent-dark),#c07a50);border-radius:16px;padding:16px;margin-bottom:14px}
+.holiday-summary{background:linear-gradient(135deg,var(--olive),#6b7a5a);border-radius:16px;padding:16px;margin-bottom:14px}
 .holiday-summary-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:10px;display:flex;align-items:center;gap:8px}
 .holiday-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .holiday-stat{background:rgba(255,255,255,0.2);border-radius:10px;padding:10px 6px;text-align:center}
@@ -121,18 +121,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .holiday-type-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .holiday-type-btn{padding:14px 8px;border:2px solid var(--border);border-radius:var(--radius);background:#fff;cursor:pointer;text-align:center;transition:all .2s;color:var(--text-dim)}
 .holiday-type-btn:hover{border-color:var(--accent)}
-.holiday-type-btn.selected{border-color:var(--accent-dark);background:rgba(233,181,149,0.15);color:var(--text)}
+.holiday-type-btn.selected{border-color:var(--olive);background:var(--cream);color:var(--text)}
 .holiday-type-icon{font-size:22px;margin-bottom:4px}
 .holiday-type-name{font-size:11px;font-weight:600}
 .holiday-type-desc{font-size:9px;color:var(--text-dim);margin-top:2px}
 .date-range-group{display:flex;flex-direction:column;gap:8px}
 .date-field{width:100%}
 .date-field-label{font-size:11px;color:var(--text-dim);margin-bottom:4px;font-weight:600}
-.days-preview{background:rgba(233,181,149,0.15);border:1px solid var(--accent);border-radius:var(--radius);padding:12px;text-align:center;margin:12px 0}
-.days-preview-value{font-size:28px;font-weight:700;color:var(--accent-dark)}
+.days-preview{background:var(--cream);border:1px solid var(--olive);border-radius:var(--radius);padding:12px;text-align:center;margin:12px 0}
+.days-preview-value{font-size:28px;font-weight:700;color:var(--olive)}
 .days-preview-label{font-size:11px;color:var(--text-dim)}
-.submit-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent-dark),#c07a50);color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s}
-.submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 20px rgba(212,149,110,0.3)}
+.submit-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--olive),#6b7a5a);color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s}
+.submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 20px rgba(129,145,110,0.3)}
 .submit-btn:disabled{opacity:.5}
 
 /* Request List */
@@ -586,7 +586,7 @@ function displayHolidayTab(showSuccess) {
 
   // Summary
   html += `<div class="holiday-summary">
-    <div class="holiday-summary-title">📊 Your Balance ${pending?`<span class="tab-badge">${pending} pending</span>`:''}</div>
+    <div class="holiday-summary-title">Your Balance ${pending?`<span class="tab-badge">${pending} pending</span>`:''}</div>
     <div class="holiday-stats">
       <div class="holiday-stat"><div class="holiday-stat-value">${s.annualUsed}/${s.annualTotal}</div><div class="holiday-stat-label">Vacation</div></div>
       <div class="holiday-stat"><div class="holiday-stat-value">${s.personalUsed}/${s.personalTotal}</div><div class="holiday-stat-label">Personal</div></div>
@@ -597,7 +597,7 @@ function displayHolidayTab(showSuccess) {
 
   // Request Form
   html += `<div class="card">
-    <div class="section-title">📝 New Request</div>
+    <div class="section-title">New Request</div>
     <div class="form-group">
       <label class="form-label">Type</label>
       <div class="holiday-type-grid">
@@ -629,12 +629,12 @@ function displayHolidayTab(showSuccess) {
     </div>
     <div id="daysPreview" style="display:none"><div class="days-preview"><div class="days-preview-value" id="previewValue">0</div><div class="days-preview-label">Days requested</div></div></div>
     <div class="form-group"><label class="form-label">Reason (optional)</label><textarea class="form-textarea" id="holidayReason" placeholder="e.g., Family vacation, doctor visit..."></textarea></div>
-    <button class="submit-btn" onclick="submitHoliday()" id="submitBtn">📤 Submit Request</button>
+    <button class="submit-btn" onclick="submitHoliday()" id="submitBtn">Submit Request</button>
   </div>`;
 
   // Request history
   const reqs = (s.requests||[]).filter(r=>r.status==='Pending'||r.status==='Approved').sort((a,b)=>new Date(b.requestDate)-new Date(a.requestDate)).slice(0,10);
-  html += '<div class="card"><div class="section-title">📋 My Requests</div>';
+  html += '<div class="card"><div class="section-title">My Requests</div>';
   if (reqs.length) {
     reqs.forEach(r => {
       const statusLabel = {Pending:'Pending',Approved:'Approved',Rejected:'Rejected'}[r.status]||r.status;
@@ -669,7 +669,7 @@ function updateHolidayInPlace() {
   const reqList = document.querySelector('.card:last-child');
   if (reqList) {
     const reqs = (s.requests||[]).filter(r=>r.status==='Pending'||r.status==='Approved').sort((a,b)=>new Date(b.requestDate)-new Date(a.requestDate)).slice(0,10);
-    let html = '<div class="section-title">📋 My Requests</div>';
+    let html = '<div class="section-title">My Requests</div>';
     if (reqs.length) {
       reqs.forEach(r => {
         const statusLabel = {Pending:'Pending',Approved:'Approved',Rejected:'Rejected'}[r.status]||r.status;
