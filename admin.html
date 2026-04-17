@@ -349,8 +349,8 @@ function renderDayDetail(date,punches){
     h+=`<div class="day-punch ${p.punchType.toLowerCase()}" id="adp-${p.punchId}" style="justify-content:space-between">
       <div style="display:flex;align-items:center;gap:10px"><span class="punch-type ${p.punchType.toLowerCase()}">${p.punchType}</span><span class="punch-time-lg" id="adpt-${p.punchId}">${p.time}</span></div>
       <div style="display:flex;gap:4px">
-        <button class="btn-sm" onclick="adminEditPunch('${p.punchId}','${p.time}','${date}')" style="background:var(--accent-dark);color:#fff">✏️</button>
-        <button class="btn-sm btn-danger" onclick="adminDelPunch('${p.punchId}','${date}')">🗑️</button>
+        <button class="btn-sm" onclick="adminEditPunch('${p.punchId}','${p.time}','${date}')" style="background:var(--cream);color:var(--olive)">✏️</button>
+        <button class="btn-sm" onclick="adminDelPunch('${p.punchId}','${date}')" style="background:var(--cream);color:var(--accent-dark)">🗑️</button>
       </div>
     </div>`;
   });
