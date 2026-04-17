@@ -434,13 +434,9 @@ function displayDay(punches) {
       const canEdit = hoursSince < 12;
       html += `<div class="punch-item ${p.punchType.toLowerCase()}" id="punch-${p.punchId}" style="position:relative">
         <div class="punch-item-left"><span class="punch-type-badge ${p.punchType.toLowerCase()}">${lbl}</span><span class="punch-time">${ft}</span></div>
-        ${canEdit ? `<div class="punch-actions" id="actions-${p.punchId}">
+        ${canEdit ? `<div class="punch-actions">
           <button class="punch-action-btn edit" onclick="openEdit('${p.punchId}','${ft}')">✏️</button>
-          <button class="punch-action-btn delete" onclick="showDelete('${p.punchId}')">🗑️</button>
-        </div>
-        <div class="delete-confirm" id="confirm-${p.punchId}">
-          <button class="delete-confirm-btn yes" onclick="confirmDelete('${p.punchId}')">Delete</button>
-          <button class="delete-confirm-btn no" onclick="cancelDelete('${p.punchId}')">Cancel</button>
+          <button class="punch-action-btn delete" onclick="confirmDelete('${p.punchId}')">🗑️</button>
         </div>` : ''}
       </div>`;
     });
@@ -494,16 +490,7 @@ async function doPunch() {
   } catch(e) { S.isPunching=false; showToast('Error saving punch','error'); btn.disabled=false; }
 }
 
-// Delete
-function showDelete(id) {
-  document.querySelectorAll('.delete-confirm.show').forEach(e=>e.classList.remove('show'));
-  $(`confirm-${id}`).classList.add('show');
-  $(`actions-${id}`).style.display='none';
-}
-function cancelDelete(id) {
-  $(`confirm-${id}`).classList.remove('show');
-  $(`actions-${id}`).style.display='flex';
-}
+// Delete — goes straight to modal
 async function confirmDelete(id) {
   S.deletingPunchId = id;
   if($('deleteReason')) $('deleteReason').value = '';
