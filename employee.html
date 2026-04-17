@@ -623,10 +623,10 @@ function displayHolidayTab(showSuccess) {
     <div class="form-group">
       <label class="form-label">Type</label>
       <div class="holiday-type-grid">
-        <div class="holiday-type-btn" onclick="selectType('Annual')" id="type-Annual"><div class="holiday-type-icon">🏖️</div><div class="holiday-type-name">Vacation</div><div class="holiday-type-desc">${s.annualRemaining} days</div></div>
-        <div class="holiday-type-btn" onclick="selectType('Personal')" id="type-Personal"><div class="holiday-type-icon">👤</div><div class="holiday-type-name">Personal</div><div class="holiday-type-desc">${s.personalRemaining} days</div></div>
-        <div class="holiday-type-btn" onclick="selectType('Medical')" id="type-Medical"><div class="holiday-type-icon">🏥</div><div class="holiday-type-name">Sick Leave</div><div class="holiday-type-desc">No limit</div></div>
-        <div class="holiday-type-btn" onclick="selectType('MedAppt')" id="type-MedAppt"><div class="holiday-type-icon">⚕️</div><div class="holiday-type-name">Med. Visit</div><div class="holiday-type-desc">${(s.medicalHoursTotal||20)-(s.medApptUsed||0)}h left</div></div>
+        <div class="holiday-type-btn" onclick="selectType('Annual')" id="type-Annual"><div class="holiday-type-icon">🏖️</div><div class="holiday-type-name">Vacation</div></div>
+        <div class="holiday-type-btn" onclick="selectType('Personal')" id="type-Personal"><div class="holiday-type-icon">👤</div><div class="holiday-type-name">Personal</div></div>
+        <div class="holiday-type-btn" onclick="selectType('Medical')" id="type-Medical"><div class="holiday-type-icon">🏥</div><div class="holiday-type-name">Sick Leave</div></div>
+        <div class="holiday-type-btn" onclick="selectType('MedAppt')" id="type-MedAppt"><div class="holiday-type-icon">⚕️</div><div class="holiday-type-name">Med. Visit</div></div>
       </div>
     </div>
     <div id="dateFields">
