@@ -165,10 +165,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .calendar-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px;color:var(--text-dim)}
 .calendar-day.empty{cursor:default}
 .calendar-day.future{opacity:.2;cursor:not-allowed}
-.calendar-day.today{border:2px solid var(--accent)}
-.calendar-day.selected{background:var(--accent);color:#fff}
-.calendar-day.has-punches{background:rgba(233,69,96,0.3);color:#fff}
-.calendar-day.selected.has-punches{background:var(--accent)}
+.calendar-day.today{border:2px solid var(--accent-dark)}
+.calendar-day.selected{background:var(--accent-dark);color:#fff}
+.calendar-day.has-punches{background:var(--accent);color:var(--text)}
+.calendar-day.selected.has-punches{background:var(--accent-dark);color:#fff}
 
 /* Edit Modal */
 .edit-modal{background:#fff;border:1px solid var(--border);border-radius:20px;width:100%;max-width:360px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
