@@ -406,8 +406,20 @@ function displayDay(punches) {
     punches.forEach(p => {
       const lbl = p.punchType==='IN' ? 'IN' : 'OUT';
       const ft = U.formatTime(p.time);
-      html += `<div class="punch-item ${p.punchType.toLowerCase()}" id="punch-${p.punchId}">
+      // Check if punch is within 12h edit window
+      const punchDate = new Date(`${ds}T${p.time}`);
+      const hoursSince = (new Date() - punchDate) / (1000*60*60);
+      const canEdit = hoursSince < 12;
+      html += `<div class="punch-item ${p.punchType.toLowerCase()}" id="punch-${p.punchId}" style="position:relative">
         <div class="punch-item-left"><span class="punch-type-badge ${p.punchType.toLowerCase()}">${lbl}</span><span class="punch-time">${ft}</span></div>
+        ${canEdit ? `<div class="punch-actions" id="actions-${p.punchId}">
+          <button class="punch-action-btn edit" onclick="openEdit('${p.punchId}','${ft}')">✏️</button>
+          <button class="punch-action-btn delete" onclick="showDelete('${p.punchId}')">🗑️</button>
+        </div>
+        <div class="delete-confirm" id="confirm-${p.punchId}">
+          <button class="delete-confirm-btn yes" onclick="confirmDelete('${p.punchId}')">Delete</button>
+          <button class="delete-confirm-btn no" onclick="cancelDelete('${p.punchId}')">Cancel</button>
+        </div>` : ''}
       </div>`;
     });
   }
