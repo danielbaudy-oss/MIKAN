@@ -252,6 +252,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+<!-- Delete Overlay -->
+<div class="overlay" id="deleteOverlay" onclick="closeOverlay(event,'delete')">
+  <div class="edit-modal" onclick="event.stopPropagation()">
+    <h3>🗑️ Delete Punch</h3>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">This punch will be removed. Please provide a reason.</p>
+    <input type="text" class="form-input" id="deleteReason" placeholder="Reason for deletion *" style="margin-bottom:12px;font-size:13px">
+    <div class="edit-actions">
+      <button class="edit-btn cancel" onclick="closeOverlay(null,'delete')">Cancel</button>
+      <button class="edit-btn save" onclick="doDelete()" style="background:var(--danger)">Delete</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- Dev role switcher (only for PIN 0000) -->
@@ -492,8 +505,16 @@ function cancelDelete(id) {
   $(`actions-${id}`).style.display='flex';
 }
 async function confirmDelete(id) {
-  const reason = prompt('Reason for deleting this punch:');
-  if (!reason) return cancelDelete(id);
+  S.deletingPunchId = id;
+  if($('deleteReason')) $('deleteReason').value = '';
+  openOverlay('delete');
+}
+
+async function doDelete() {
+  const reason = $('deleteReason').value.trim();
+  if (!reason) return showToast('Please provide a reason','error');
+  const id = S.deletingPunchId;
+  closeOverlay(null,'delete');
   try {
     const r = await apiPost({ action:'deletePunch', punchId:id, reason, employee:USER.id });
     if (r.success) { showToast('Punch deleted','success'); invalidateDayCache(U.formatDate(S.currentDate)); loadDayData(true); }
