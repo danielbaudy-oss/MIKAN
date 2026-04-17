@@ -1,0 +1,13 @@
+{
+  "name": "MIKAN Time Clock",
+  "short_name": "MIKAN",
+  "description": "Employee time clock for MIKAN Restaurant",
+  "start_url": "/MIKAN/",
+  "display": "standalone",
+  "background_color": "#f1dfd3",
+  "theme_color": "#d4956e",
+  "icons": [
+    { "src": "logo.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "logo.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

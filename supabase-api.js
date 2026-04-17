@@ -43,6 +43,9 @@ const API = {
   },
 
   async addPunch(employeeId, name, date, time, lat, lng) {
+    // Duplicate prevention
+    const isDup = await API.checkDuplicate(employeeId, date, time);
+    if (isDup) return { success: false, message: 'Duplicate punch — too close to an existing entry' };
     const { data: existing } = await (await getSB()).from('punches')
       .select('id').eq('employee_id', employeeId).eq('punch_date', date).eq('is_deleted', false);
     const punchType = (existing||[]).length % 2 === 0 ? 'IN' : 'OUT';
@@ -268,6 +271,180 @@ const API = {
       approvedHolidays: (appRes.data||[]).map(mapHol),
       closures: (cloRes.data||[]).map(c => ({ closureId: c.id, name: c.name, startDate: c.start_date, endDate: c.end_date })),
       month, year
+    };
+  },
+
+  // ===== APP CONFIG =====
+  async getConfig() {
+    const { data } = await (await getSB()).from('app_config').select('key,value');
+    const cfg = {};
+    (data||[]).forEach(r => cfg[r.key] = r.value);
+    return cfg;
+  },
+  async setConfig(key, value) {
+    const { error } = await (await getSB()).from('app_config').upsert({ key, value: String(value) });
+    if (error) throw error;
+    return { success: true };
+  },
+
+  // ===== FREEZE =====
+  async getFreezeDate() {
+    const cfg = await API.getConfig();
+    return cfg.FreezeDate || null;
+  },
+  async setFreezeDate(date) {
+    return API.setConfig('FreezeDate', date || '');
+  },
+  isDateFrozen(dateStr, freezeDate) {
+    if (!freezeDate) return false;
+    return dateStr <= freezeDate;
+  },
+
+  // ===== DUPLICATE PREVENTION =====
+  async checkDuplicate(employeeId, date, time) {
+    const { data } = await (await getSB()).from('punches')
+      .select('punch_time').eq('employee_id', employeeId).eq('punch_date', date).eq('is_deleted', false);
+    if (!data || !data.length) return false;
+    const [h, m] = time.split(':').map(Number);
+    const mins = h * 60 + m;
+    return data.some(p => {
+      const [ph, pm] = p.punch_time.split(':').map(Number);
+      return Math.abs((ph * 60 + pm) - mins) < 2;
+    });
+  },
+
+  // ===== PAID HOURS =====
+  async getPaidHours(year, month) {
+    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const endDate = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+    const { data, error } = await (await getSB()).from('paid_hours')
+      .select('*').gte('date', startDate).lte('date', endDate).order('date', { ascending: false });
+    if (error) throw error;
+    return { success: true, records: (data||[]).map(r => ({
+      id: r.id, employeeId: r.employee_id, employeeName: r.employee_name,
+      hours: r.hours, date: r.date, notes: r.notes || ''
+    })) };
+  },
+  async getAllPaidHoursForYear(year) {
+    const { data } = await (await getSB()).from('paid_hours')
+      .select('employee_id,hours').gte('date', `${year}-01-01`).lte('date', `${year}-12-31`);
+    return data || [];
+  },
+  async addPaidHours(employeeId, employeeName, hours, date, notes) {
+    const { data, error } = await (await getSB()).from('paid_hours').insert({
+      employee_id: employeeId, employee_name: employeeName,
+      hours, date, notes: notes || null
+    }).select();
+    if (error) throw error;
+    return { success: true, id: data[0].id, message: 'Paid hours added' };
+  },
+  async updatePaidHours(id, hours, date, notes) {
+    const { error } = await (await getSB()).from('paid_hours').update({ hours, date, notes }).eq('id', id);
+    if (error) throw error;
+    return { success: true, message: 'Updated' };
+  },
+  async deletePaidHours(id) {
+    const { error } = await (await getSB()).from('paid_hours').delete().eq('id', id);
+    if (error) throw error;
+    return { success: true, message: 'Deleted' };
+  },
+
+  // ===== PROGRESS CALCULATION =====
+  async getEmployeeProgress(employeeId, year) {
+    const sb = await getSB();
+    // Get employee info
+    const { data: empArr } = await sb.from('employees').select('*').eq('id', employeeId);
+    const emp = empArr?.[0];
+    if (!emp) return null;
+
+    // Get all punches for the year
+    const { data: punches } = await sb.from('punches')
+      .select('punch_date,punch_time,punch_type')
+      .eq('employee_id', employeeId).eq('is_deleted', false)
+      .gte('punch_date', `${year}-01-01`).lte('punch_date', `${year}-12-31`)
+      .order('punch_time');
+
+    // Get closures for working day calculation
+    const { data: closures } = await sb.from('closures').select('start_date,end_date');
+
+    // Get approved holidays
+    const { data: holidays } = await sb.from('holidays')
+      .select('start_date,end_date,days,type')
+      .eq('employee_id', employeeId).eq('status', 'Approved');
+
+    // Get paid hours
+    const { data: paidHrs } = await sb.from('paid_hours')
+      .select('hours').eq('employee_id', employeeId)
+      .gte('date', `${year}-01-01`).lte('date', `${year}-12-31`);
+
+    // Calculate total worked hours
+    const dayMap = {};
+    (punches||[]).forEach(p => {
+      if (!dayMap[p.punch_date]) dayMap[p.punch_date] = [];
+      dayMap[p.punch_date].push(p);
+    });
+    let totalMins = 0;
+    Object.values(dayMap).forEach(dps => {
+      const sorted = dps.sort((a, b) => a.punch_time.localeCompare(b.punch_time));
+      for (let i = 0; i < sorted.length - 1; i += 2) {
+        if (sorted[i].punch_type === 'IN' && sorted[i+1]?.punch_type === 'OUT') {
+          const [ih, im] = sorted[i].punch_time.split(':').map(Number);
+          const [oh, om] = sorted[i+1].punch_time.split(':').map(Number);
+          const diff = (oh*60+om) - (ih*60+im);
+          if (diff > 0) totalMins += diff;
+        }
+      }
+    });
+    const totalHoursWorked = totalMins / 60;
+
+    // Build closure date set
+    const closureDates = new Set();
+    (closures||[]).forEach(c => {
+      const [sy,sm,sd] = c.start_date.split('-').map(Number);
+      const [ey,em,ed] = c.end_date.split('-').map(Number);
+      for (let d = new Date(sy,sm-1,sd); d <= new Date(ey,em-1,ed); d.setDate(d.getDate()+1)) {
+        closureDates.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
+      }
+    });
+
+    // Count working days in year up to today
+    const today = new Date();
+    const yearStart = new Date(year, 0, 1);
+    const yearEnd = new Date(year, 11, 31);
+    const endDate = today < yearEnd ? today : yearEnd;
+    let totalWorkingDays = 0, passedWorkingDays = 0;
+    for (let d = new Date(yearStart); d <= yearEnd; d.setDate(d.getDate()+1)) {
+      const dow = d.getDay();
+      const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      if (dow !== 0 && dow !== 6 && !closureDates.has(ds)) {
+        totalWorkingDays++;
+        if (d <= endDate) passedWorkingDays++;
+      }
+    }
+
+    // Holiday days taken
+    const holidayDays = (holidays||[]).filter(h => h.type !== 'MedAppt').reduce((s, h) => s + h.days, 0);
+    const medicalHours = (holidays||[]).filter(h => h.type === 'Medical').reduce((s, h) => s + (h.days * 8), 0);
+
+    // Paid hours total
+    const paidTotal = (paidHrs||[]).reduce((s, r) => s + Number(r.hours), 0);
+
+    const expectedYearly = emp.expected_hours || 1776;
+    const hoursPerDay = expectedYearly / totalWorkingDays;
+    const adjustedPassedDays = Math.max(0, passedWorkingDays - holidayDays);
+    const expectedToDate = adjustedPassedDays * hoursPerDay;
+    const totalHours = totalHoursWorked + medicalHours - paidTotal;
+    const progressPercent = expectedToDate > 0 ? (totalHours / expectedToDate) * 100 : 0;
+
+    return {
+      totalHoursWorked: Math.round(totalHoursWorked * 100) / 100,
+      totalHours: Math.round(totalHours * 100) / 100,
+      expectedYearlyHours: expectedYearly,
+      expectedHoursToDate: Math.round(expectedToDate * 100) / 100,
+      progressPercent: Math.round(progressPercent * 10) / 10,
+      passedWorkingDays, totalWorkingDays, holidayDays, paidTotal,
+      medicalHours: Math.round(medicalHours * 100) / 100
     };
   }
 };

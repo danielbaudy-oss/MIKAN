@@ -253,11 +253,48 @@ function renderEmpTable(){
   h+='</tbody></table></div>';el.innerHTML=h;
 }
 
-function renderPaidTab(){const el=$('paidTab');if(!el)return;el.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">💰 Paid Hours</span><button class="btn btn-add" onclick="addPaidHrs()">➕ Add</button></div><div class="card-body"><div class="empty"><div class="empty-icon">💰</div><p>No paid hours recorded yet</p></div></div></div>`;}
-function renderFreezeTab(){const el=$('freezeTab');if(!el)return;el.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">🔒 Freeze Punches</span></div><div class="card-body"><p style="color:var(--text-dim);font-size:13px">Freeze a date range to prevent employees from editing their punches.</p><div style="margin-top:12px"><button class="btn btn-danger" onclick="toast('Freeze feature coming soon','')">🔒 Freeze Current Month</button></div></div></div>`;}
+async function renderPaidTab(){
+  const el=$('paidTab');if(!el)return;
+  el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  try{
+    const r=await API.getPaidHours(S.yr,S.mo);
+    const recs=r.records||[];
+    let h=`<div class="card"><div class="card-header"><span class="card-title">💰 Paid Hours</span><button class="btn btn-add" onclick="addPaidHrs()">➕ Add</button></div>`;
+    if(!recs.length)h+=`<div class="card-body"><div class="empty"><div class="empty-icon">💰</div><p>No paid hours this month</p></div></div>`;
+    else{h+=`<table><thead><tr><th>Employee</th><th>Hours</th><th>Date</th><th>Notes</th><th></th></tr></thead><tbody>`;
+    recs.forEach(r=>{h+=`<tr><td class="emp-name">${r.employeeName}</td><td><span class="badge badge-good">${r.hours}h</span></td><td>${r.date}</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis">${r.notes||'-'}</td><td style="white-space:nowrap"><button class="btn-sm" onclick="editPaidHr('${r.id}','${r.employeeName}',${r.hours},'${r.date}','${(r.notes||'').replace(/'/g,'')}')" style="background:var(--accent-dark);color:#fff">✏️</button> <button class="btn-sm btn-danger" onclick="delPaidHr('${r.id}')">🗑️</button></td></tr>`;});
+    h+='</tbody></table>';}
+    h+='</div>';el.innerHTML=h;
+  }catch(e){el.innerHTML='<div class="card"><div class="card-body"><p>Error loading</p></div></div>';}
+}
 
-function addPaidHrs(){openModal('➕ Add Paid Hours',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Employee</label><select id="phEmp" class="fs">${S.emps.map(e=>`<option value="${e.id}">${e.name}</option>`).join('')}</select></div><div class="fg"><label class="fl">Hours</label><input type="number" id="phHrs" class="fi" value="1" min="0.5" step="0.5"></div><div class="fg"><label class="fl">Date</label><input type="date" id="phDate" class="fi"></div><div class="fg"><label class="fl">Notes</label><input type="text" id="phNotes" class="fi" placeholder="Optional"></div></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="toast('Paid hours feature coming soon','')">➕ Add</button></div>`);}
+async function renderFreezeTab(){
+  const el=$('freezeTab');if(!el)return;
+  el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  try{
+    const freezeDate=await API.getFreezeDate();
+    const isFrozen=!!freezeDate;
+    let h=`<div class="card"><div class="card-header"><span class="card-title">🔒 Freeze Punches</span></div><div class="card-body">`;
+    h+=`<p style="color:var(--text-dim);font-size:13px;margin-bottom:14px">Freeze punches up to a date. Employees cannot edit frozen punches.</p>`;
+    h+=`<div style="background:${isFrozen?'#d1fae5':'var(--bg)'};border:1px solid ${isFrozen?'#a7f3d0':'var(--border)'};border-radius:10px;padding:14px;margin-bottom:14px">`;
+    h+=`<div style="font-size:12px;color:var(--text-dim);text-transform:uppercase;font-weight:600;margin-bottom:4px">Status</div>`;
+    h+=isFrozen?`<div style="font-size:16px;font-weight:700;color:#065f46">🔒 Frozen through ${freezeDate}</div>`:`<div style="font-size:16px;font-weight:700;color:var(--text-dim)">🔓 Not frozen</div>`;
+    h+=`</div>`;
+    h+=`<div style="display:flex;gap:8px;flex-wrap:wrap">`;
+    h+=`<button class="btn btn-danger" onclick="doFreeze()" id="freezeBtn">🔒 Freeze through yesterday</button>`;
+    if(isFrozen)h+=`<button class="btn btn-primary" onclick="doUnfreeze()" id="unfreezeBtn" style="background:var(--success)">🔓 Unfreeze all</button>`;
+    h+=`</div></div></div>`;
+    el.innerHTML=h;
+  }catch(e){el.innerHTML='<div class="card"><div class="card-body"><p>Error loading</p></div></div>';}
+}
 
+function addPaidHrs(){openModal('➕ Add Paid Hours',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Employee</label><select id="phEmp" class="fs">${S.emps.map(e=>`<option value="${e.id}" data-name="${e.name}">${e.name}</option>`).join('')}</select></div><div class="fg"><label class="fl">Hours</label><input type="number" id="phHrs" class="fi" value="1" min="0.5" step="0.5"></div><div class="fg"><label class="fl">Date</label><input type="date" id="phDate" class="fi"></div><div class="fg"><label class="fl">Notes</label><input type="text" id="phNotes" class="fi" placeholder="Optional"></div></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" id="phSave" onclick="savePaidHr()">➕ Add</button></div>`);}
+async function savePaidHr(){const sel=$('phEmp');const empId=sel.value;const empName=sel.options[sel.selectedIndex].dataset.name;const hrs=$('phHrs').value;const date=$('phDate').value;const notes=$('phNotes').value;if(!empId||!hrs||!date)return toast('All fields required','error');const btn=$('phSave');btn.disabled=true;btn.textContent='⏳';try{const r=await API.addPaidHours(empId,empName,Number(hrs),date,notes);if(r.success){toast('Added','success');closeModal();renderPaidTab();}else{toast(r.message,'error');btn.disabled=false;btn.textContent='➕ Add';}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='➕ Add';}}
+function editPaidHr(id,name,hrs,date,notes){openModal('✏️ Edit Paid Hours',`<div class="fg"><label class="fl">Employee</label><input class="fi" value="${name}" disabled></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Hours</label><input type="number" id="ephHrs" class="fi" value="${hrs}" min="0.5" step="0.5"></div><div class="fg"><label class="fl">Date</label><input type="date" id="ephDate" class="fi" value="${date}"></div></div><div class="fg"><label class="fl">Notes</label><input type="text" id="ephNotes" class="fi" value="${notes}"></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" id="ephSave" onclick="saveEditPaidHr('${id}')">💾 Save</button></div>`);}
+async function saveEditPaidHr(id){const btn=$('ephSave');btn.disabled=true;btn.textContent='⏳';try{const r=await API.updatePaidHours(id,Number($('ephHrs').value),$('ephDate').value,$('ephNotes').value);if(r.success){toast('Updated','success');closeModal();renderPaidTab();}else{toast(r.message,'error');btn.disabled=false;btn.textContent='💾 Save';}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='💾 Save';}}
+async function delPaidHr(id){if(!confirm('Delete?'))return;try{const r=await API.deletePaidHours(id);if(r.success){toast('Deleted','success');renderPaidTab();}else toast(r.message,'error');}catch(e){toast('Error','error');}}
+async function doFreeze(){const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);const ds=`${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;if(!confirm(`Freeze all punches through ${ds}?`))return;const btn=$('freezeBtn');btn.disabled=true;btn.textContent='⏳';try{await API.setFreezeDate(ds);toast('Frozen','success');renderFreezeTab();}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='🔒 Freeze';}}
+async function doUnfreeze(){if(!confirm('Unfreeze all punches?'))return;const btn=$('unfreezeBtn');btn.disabled=true;btn.textContent='⏳';try{await API.setFreezeDate('');toast('Unfrozen','success');renderFreezeTab();}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='🔓 Unfreeze';}}
 // Employee Calendar Modal
 async function openEmpCal(id,name){
   S.selEmp={id,name};S.calDate=new Date(S.yr,S.mo-1,1);
