@@ -7,7 +7,7 @@
   <title>MIKAN - Admin</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#f1dfd3;--accent:#e9b595;--accent-dark:#d4956e;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--border:#e0d0c4;--text:#1a1a1a;--text-dim:#6b5c52;--radius:14px}
+:root{--bg:#f1dfd3;--accent:#e9b595;--accent-dark:#d4956e;--success:#81916e;--warning:#f59e0b;--danger:#ef4444;--border:#e0d0c4;--text:#1a1a1a;--text-dim:#6b5c52;--radius:14px;--cream:#f3f3ee;--olive:#81916e}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 .sidebar{position:fixed;left:0;top:0;bottom:0;width:260px;background:#fff;padding:20px;overflow-y:auto;z-index:100;border-right:1px solid var(--border);box-shadow:2px 0 10px rgba(0,0,0,0.04)}
 .sidebar-header{display:flex;align-items:center;gap:12px;margin-bottom:28px;padding-bottom:18px;border-bottom:1px solid var(--border)}
@@ -71,10 +71,10 @@ tbody tr{transition:all .15s}tbody tr:hover{background:rgba(233,181,149,0.2)}
 
 <style>
 .badge{display:inline-block;padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600}
-.badge-good{background:#d1fae5;color:#065f46}.badge-warn{background:#fef3c7;color:#92400e}.badge-bad{background:#fee2e2;color:#991b1b}
-.badge-active{background:#d1fae5;color:#065f46}.badge-inactive{background:#fee2e2;color:#991b1b}
+.badge-good{background:var(--cream);color:var(--olive)}.badge-warn{background:#fef3c7;color:#92400e}.badge-bad{background:#fee2e2;color:#991b1b}
+.badge-active{background:var(--cream);color:var(--olive)}.badge-inactive{background:#fee2e2;color:#991b1b}
 .badge-annual{background:#dbeafe;color:#1e40af}.badge-personal{background:#ede9fe;color:#5b21b6}.badge-medical{background:#fee2e2;color:#991b1b}.badge-medappt{background:#fef3c7;color:#92400e}
-.badge-pending{background:#fef3c7;color:#92400e}.badge-approved{background:#d1fae5;color:#065f46}.badge-rejected{background:#fee2e2;color:#991b1b}
+.badge-pending{background:#fef3c7;color:#92400e}.badge-approved{background:var(--cream);color:var(--olive)}.badge-rejected{background:#fee2e2;color:#991b1b}
 .pin-badge{background:var(--bg);padding:3px 8px;border-radius:6px;font-family:monospace;font-size:12px;color:var(--text-dim)}
 .month-sel{display:flex;align-items:center;gap:6px;background:#fff;padding:4px;border-radius:var(--radius);border:1px solid var(--border)}
 .month-btn{width:32px;height:32px;border:none;border-radius:8px;background:var(--bg);cursor:pointer;font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;justify-content:center}
@@ -132,7 +132,7 @@ tbody tr{transition:all .15s}tbody tr:hover{background:rgba(233,181,149,0.2)}
 .loading{text-align:center;padding:30px}.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);padding:10px 20px;border-radius:var(--radius);font-weight:600;font-size:12px;z-index:2000;opacity:0;transition:all .3s;color:#fff}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.toast.success{background:var(--success)}.toast.error{background:var(--danger)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.toast.success{background:var(--olive)}.toast.error{background:var(--danger)}
 .mobile-menu-btn{display:none;position:fixed;top:16px;left:16px;width:44px;height:44px;border-radius:var(--radius);border:none;background:var(--accent-dark);color:#fff;font-size:20px;cursor:pointer;z-index:200;align-items:center;justify-content:center}
 @media(max-width:768px){.sidebar{transform:translateX(-100%);transition:transform .3s}.sidebar.open{transform:translateX(0)}.mobile-menu-btn{display:flex}.main{margin-left:0;padding:14px;padding-top:70px}.stats-grid{grid-template-columns:repeat(2,1fr)}table{display:block;overflow-x:auto}.cal-cell{font-size:11px}}
 </style>
