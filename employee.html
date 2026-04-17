@@ -59,8 +59,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* Time Input */
 .section-title{font-size:13px;font-weight:700;color:var(--text-dim);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
-.time-input{width:100%;max-width:100%;padding:10px;font-size:22px;font-weight:700;text-align:center;border:2px solid var(--border);border-radius:var(--radius);color:var(--text);background:var(--bg);-webkit-appearance:none;appearance:none}
-.time-input::-webkit-calendar-picker-indicator{opacity:0.4;cursor:pointer}
+.time-input{width:100%;max-width:100%;padding:10px;font-size:22px;font-weight:700;text-align:center;border:2px solid var(--border);border-radius:var(--radius);color:var(--text);background:var(--bg);-webkit-appearance:none;appearance:none;cursor:pointer;position:relative}
+.time-input::-webkit-calendar-picker-indicator{position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100%;opacity:0;cursor:pointer}
 .time-input::-webkit-inner-spin-button{display:none}
 .time-input:focus{outline:none;border-color:var(--accent-dark)}
 .time-warning{display:none;color:var(--danger);font-size:12px;margin-top:6px;text-align:center;font-weight:600}
