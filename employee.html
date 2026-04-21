@@ -680,15 +680,15 @@ function displayHolidayTab(showSuccess) {
     <div class="form-group">
       <label class="form-label">Dates</label>
       <div class="date-range-group">
-        <div class="date-field"><div class="date-field-label">From</div><input type="date" class="form-input" id="holidayStart" min="${today}" onchange="onStartChange()"></div>
-        <div class="date-field" id="endDateField"><div class="date-field-label">To</div><input type="date" class="form-input" id="holidayEnd" min="${today}" onchange="updatePreview()"></div>
+        <div class="date-field"><div class="date-field-label">From</div><input type="date" class="form-input" id="holidayStart" onchange="onStartChange()"></div>
+        <div class="date-field" id="endDateField"><div class="date-field-label">To</div><input type="date" class="form-input" id="holidayEnd" onchange="updatePreview()"></div>
       </div>
     </div>
     </div>
     <div id="medApptFields" style="display:none">
     <div class="form-group">
       <label class="form-label">Date & Time</label>
-      <input type="date" class="form-input" id="medApptDate" min="${today}" style="margin-bottom:8px">
+      <input type="date" class="form-input" id="medApptDate" style="margin-bottom:8px">
       <div class="date-range-group" style="margin-top:6px">
         <div class="date-field"><div class="date-field-label">From</div><input type="time" class="form-input" id="medApptStart" value="09:00" onchange="updateMedHours()" style="text-align:center;font-weight:600"></div>
         <div class="date-field"><div class="date-field-label">To</div><input type="time" class="form-input" id="medApptEnd" value="10:00" onchange="updateMedHours()" style="text-align:center;font-weight:600"></div>
