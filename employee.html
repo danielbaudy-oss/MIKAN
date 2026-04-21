@@ -702,15 +702,17 @@ function displayHolidayTab(showSuccess) {
   </div>`;
 
   // Request history
-  const reqs = (s.requests||[]).filter(r=>r.status==='Pending'||r.status==='Approved'||r.status==='Rejected').sort((a,b)=>new Date(b.requestDate)-new Date(a.requestDate)).slice(0,10);
+  const dismissed = JSON.parse(localStorage.getItem(`mikan_dismissed_${USER.id}`)||'[]');
+  const reqs = (s.requests||[]).filter(r=>(r.status==='Pending'||r.status==='Approved'||r.status==='Rejected') && !dismissed.includes(r.requestId)).sort((a,b)=>new Date(b.requestDate)-new Date(a.requestDate)).slice(0,10);
   html += '<div class="card"><div class="section-title">My Requests</div>';
   if (reqs.length) {
     reqs.forEach(r => {
       const statusLabel = {Pending:'Pending',Approved:'Approved',Rejected:'Rejected'}[r.status]||r.status;
       const typeName = HOLIDAY_TYPES[r.type]?.name||r.type;
       const emoji = HOLIDAY_TYPES[r.type]?.emoji||'📅';
-      html += `<div class="request-item ${r.status}">
-        <div class="request-header"><span class="request-type">${emoji} ${typeName}</span><span class="request-status ${r.status}">${statusLabel}</span></div>
+      html += `<div class="request-item ${r.status}" style="position:relative">
+        <button onclick="dismissRequest('${r.requestId}')" style="position:absolute;top:8px;right:8px;width:20px;height:20px;border:none;background:transparent;color:var(--text-dim);font-size:14px;cursor:pointer;padding:0;line-height:1" title="Remove from view">✕</button>
+        <div class="request-header"><span class="request-type">${emoji} ${typeName}</span><span class="request-status ${r.status}" style="margin-right:22px">${statusLabel}</span></div>
         <div class="request-dates">${new Date(r.startDate).toLocaleDateString('en-US')}${r.startDate!==r.endDate?' - '+new Date(r.endDate).toLocaleDateString('en-US'):''}</div>
         <div class="request-days">${r.days} day${r.days!==1?'s':''}${r.reason?' • '+U.esc(r.reason.substring(0,50))+(r.reason.length>50?'...':''):''}</div>
       </div>`;
@@ -723,8 +725,15 @@ function displayHolidayTab(showSuccess) {
   S.selectedHolidayType = null;
 }
 
-function updateHolidayInPlace() {
-  const s = S.holidaySummary;
+function dismissRequest(requestId) {
+  const key = `mikan_dismissed_${USER.id}`;
+  const dismissed = JSON.parse(localStorage.getItem(key) || '[]');
+  if (!dismissed.includes(requestId)) dismissed.push(requestId);
+  localStorage.setItem(key, JSON.stringify(dismissed));
+  displayHolidayTab();
+}
+
+function updateHolidayInPlace() {  const s = S.holidaySummary;
   if (!s) return;
   // Update balance stats
   const stats = document.querySelectorAll('.holiday-stat');
@@ -737,15 +746,17 @@ function updateHolidayInPlace() {
   // Update requests list
   const reqList = document.querySelector('.card:last-child');
   if (reqList) {
-    const reqs = (s.requests||[]).filter(r=>r.status==='Pending'||r.status==='Approved'||r.status==='Rejected').sort((a,b)=>new Date(b.requestDate)-new Date(a.requestDate)).slice(0,10);
+    const dismissed = JSON.parse(localStorage.getItem(`mikan_dismissed_${USER.id}`)||'[]');
+    const reqs = (s.requests||[]).filter(r=>(r.status==='Pending'||r.status==='Approved'||r.status==='Rejected') && !dismissed.includes(r.requestId)).sort((a,b)=>new Date(b.requestDate)-new Date(a.requestDate)).slice(0,10);
     let html = '<div class="section-title">My Requests</div>';
     if (reqs.length) {
       reqs.forEach(r => {
         const statusLabel = {Pending:'Pending',Approved:'Approved',Rejected:'Rejected'}[r.status]||r.status;
         const typeName = HOLIDAY_TYPES[r.type]?.name||r.type;
         const emoji = HOLIDAY_TYPES[r.type]?.emoji||'📅';
-        html += `<div class="request-item ${r.status}">
-          <div class="request-header"><span class="request-type">${emoji} ${typeName}</span><span class="request-status ${r.status}">${statusLabel}</span></div>
+        html += `<div class="request-item ${r.status}" style="position:relative">
+          <button onclick="dismissRequest('${r.requestId}')" style="position:absolute;top:8px;right:8px;width:20px;height:20px;border:none;background:transparent;color:var(--text-dim);font-size:14px;cursor:pointer;padding:0;line-height:1" title="Remove from view">✕</button>
+          <div class="request-header"><span class="request-type">${emoji} ${typeName}</span><span class="request-status ${r.status}" style="margin-right:22px">${statusLabel}</span></div>
           <div class="request-dates">${new Date(r.startDate).toLocaleDateString('en-US')}${r.startDate!==r.endDate?' - '+new Date(r.endDate).toLocaleDateString('en-US'):''}</div>
           <div class="request-days">${r.days} day${r.days!==1?'s':''}${r.reason?' • '+U.esc(r.reason.substring(0,50))+(r.reason.length>50?'...':''):''}</div>
         </div>`;
