@@ -237,10 +237,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="calendar-nav-btn" id="nextMonthBtn" onclick="calChangeMonth(1)">›</button>
     </div>
     <div class="calendar-grid" id="calendarGrid"></div>
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;padding:10px 12px;background:var(--cream);border:1px solid var(--border);border-radius:10px;font-size:11px;color:var(--text);font-weight:600">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;padding:10px 12px;background:var(--cream);border:1px solid var(--border);border-radius:10px;font-size:11px;color:var(--text);font-weight:600">
       <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:var(--accent);border:1px solid var(--accent-dark);display:inline-block"></span>Punched</span>
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#fff;border:2px solid var(--accent-dark);display:inline-block"></span>Today</span>
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:var(--accent-dark);display:inline-block"></span>Selected</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#fef3c7;border:1px solid #f59e0b;display:inline-block"></span>Closure</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#dbeafe;border:1px solid #3b82f6;display:inline-block"></span>Vacation</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#ede9fe;border:1px solid #8b5cf6;display:inline-block"></span>Personal</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#fee2e2;border:1px solid #ef4444;display:inline-block"></span>Sick</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#fef3c7;border:1px solid #f59e0b;display:inline-block"></span>Med. Visit</span>
     </div>
   </div>
 </div>
@@ -563,18 +566,45 @@ async function loadCalendarMonth() {
 function renderCalendar() {
   const y=S.calendarDate.getFullYear(), m=S.calendarDate.getMonth(), first=new Date(y,m,1), last=new Date(y,m+1,0), start=first.getDay();
   const todayStr=U.formatDate(new Date()), selStr=U.formatDate(S.currentDate);
+
+  // Build approved holiday map for this employee
+  const holMap = {};
+  const reqs = S.holidaySummary?.requests || [];
+  reqs.filter(r => r.status === 'Approved').forEach(r => {
+    const [sy,sm2,sd] = r.startDate.split('-').map(Number);
+    const [ey,em2,ed] = r.endDate.split('-').map(Number);
+    const s = new Date(sy,sm2-1,sd), e = new Date(ey,em2-1,ed);
+    for (let d = new Date(s); d <= e; d.setDate(d.getDate()+1)) {
+      holMap[U.formatDate(d)] = r.type;
+    }
+  });
+
   let html='';
   ['S','M','T','W','T','F','S'].forEach(n=>html+=`<div class="calendar-day-header">${n}</div>`);
   for(let i=0;i<start;i++) html+='<div class="calendar-day empty"></div>';
   for(let d=1;d<=last.getDate();d++){
     const date=new Date(y,m,d), ds=U.formatDate(date), isF=U.isFuture(date);
     const hasP=S.punchedDays[ds]?.count>0;
+    const closure=S.closures[ds];
+    const holType=holMap[ds];
     let cls=['calendar-day'];
+    let style='';
     if(ds===todayStr)cls.push('today');
     if(ds===selStr)cls.push('selected');
-    if(isF)cls.push('future');
-    else if(hasP)cls.push('has-punches');
-    html+=`<div class="${cls.join(' ')}" ${isF?'':`onclick="selectDate(${y},${m},${d})"`}>${d}</div>`;
+    if(isF && !holType)cls.push('future');
+    // Priority: selected > holiday type > closure > punches
+    if(ds!==selStr){
+      if(holType){
+        const colors={Annual:{bg:'#dbeafe',br:'#3b82f6'},Personal:{bg:'#ede9fe',br:'#8b5cf6'},Medical:{bg:'#fee2e2',br:'#ef4444'},MedAppt:{bg:'#fef3c7',br:'#f59e0b'}};
+        const c=colors[holType]||{bg:'#e5e7eb',br:'#9ca3af'};
+        style=`background:${c.bg};border:1px solid ${c.br}`;
+      } else if(closure){
+        style=`background:#fef3c7;border:1px solid #f59e0b`;
+      } else if(hasP){
+        cls.push('has-punches');
+      }
+    }
+    html+=`<div class="${cls.join(' ')}" style="${style}" ${isF?'':`onclick="selectDate(${y},${m},${d})"`}>${d}</div>`;
   }
   $('calendarGrid').innerHTML=html;
 }
