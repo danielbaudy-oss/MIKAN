@@ -421,7 +421,7 @@ function displayDay(punches) {
   const canPunch = !isF;
   const label = nextType==='IN' ? 'CLOCK IN' : 'CLOCK OUT';
 
-  html += `<div class="section-title">⏱️ Record Time</div>
+  html += `<div class="section-title">Record Time</div>
     <input type="time" class="time-input" id="punchTime" value="${U.getCurrentTime()}" onchange="validateTime(this)" ${!canPunch?'disabled':''}>
     <div class="time-warning" id="timeWarning">⚠️ Cannot select a future time</div>
     <button class="punch-btn ${nextType.toLowerCase()}" onclick="doPunch()" ${!canPunch?'disabled':''}>${label}</button>`;
@@ -429,7 +429,7 @@ function displayDay(punches) {
   if (isF) html += '<div class="future-warning">⚠️ Cannot punch in future dates</div>';
 
   // Punch list
-  html += `<div class="punches-header"><div class="section-title" style="margin:0">📋 Punches</div><div class="punches-count">${punches.length}</div></div>`;
+  html += `<div class="punches-header"><div class="section-title" style="margin:0">Punches</div><div class="punches-count">${punches.length}</div></div>`;
 
   if (!punches.length) {
     html += '<div class="empty-state"><div class="empty-state-icon">🕐</div><div class="empty-state-text">No punches yet</div></div>';
