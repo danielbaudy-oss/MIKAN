@@ -702,7 +702,7 @@ function displayHolidayTab(showSuccess) {
   </div>`;
 
   // Request history
-  const reqs = (s.requests||[]).filter(r=>r.status==='Pending'||r.status==='Approved').sort((a,b)=>new Date(b.requestDate)-new Date(a.requestDate)).slice(0,10);
+  const reqs = (s.requests||[]).filter(r=>r.status==='Pending'||r.status==='Approved'||r.status==='Rejected').sort((a,b)=>new Date(b.requestDate)-new Date(a.requestDate)).slice(0,10);
   html += '<div class="card"><div class="section-title">My Requests</div>';
   if (reqs.length) {
     reqs.forEach(r => {
@@ -737,7 +737,7 @@ function updateHolidayInPlace() {
   // Update requests list
   const reqList = document.querySelector('.card:last-child');
   if (reqList) {
-    const reqs = (s.requests||[]).filter(r=>r.status==='Pending'||r.status==='Approved').sort((a,b)=>new Date(b.requestDate)-new Date(a.requestDate)).slice(0,10);
+    const reqs = (s.requests||[]).filter(r=>r.status==='Pending'||r.status==='Approved'||r.status==='Rejected').sort((a,b)=>new Date(b.requestDate)-new Date(a.requestDate)).slice(0,10);
     let html = '<div class="section-title">My Requests</div>';
     if (reqs.length) {
       reqs.forEach(r => {
