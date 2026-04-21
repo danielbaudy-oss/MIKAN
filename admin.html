@@ -389,13 +389,18 @@ async function saveAdminEdit(id,date){
   if(r.success){toast('Updated','success');await openDayDetail(date);}else{toast(r.message,'error');btn.disabled=false;btn.textContent='💾 Save';}}
   catch(e){toast('Error','error');btn.disabled=false;btn.textContent='💾 Save';}
 }
-async function adminDelPunch(id,date){
-  const reason=prompt('Reason for deleting this punch:');
-  if(!reason)return;
-  const el=document.getElementById(`adp-${id}`);if(el)el.style.opacity='0.4';
+function adminDelPunch(id,date){
+  const html=`<p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">This punch will be deleted. Please provide a reason.</p><div class="fg"><label class="fl">Reason *</label><input type="text" id="dpReason" class="fi" placeholder="Reason for deletion"></div><div class="btn-row"><button class="btn-cancel" onclick="openDayDetail('${date}')">Cancel</button><button class="btn-save" id="dpSave" onclick="saveAdminDel('${id}','${date}')" style="background:var(--danger)">Delete</button></div>`;
+  $('mBody').innerHTML=`<button class="btn btn-primary" onclick="openDayDetail('${date}')" style="margin-bottom:12px;font-size:12px">← Back</button><div style="font-weight:600;margin-bottom:12px">Delete Punch</div>${html}`;
+}
+async function saveAdminDel(id,date){
+  const reason=$('dpReason').value.trim();
+  if(!reason)return toast('Please provide a reason','error');
+  const btn=$('dpSave');btn.disabled=true;btn.textContent='⏳';
   try{const r=await api({action:'deletePunch',punchId:id,reason,employee:S.selEmp.id});
-  if(r.success){toast('Deleted','success');await openDayDetail(date);}else{toast(r.message,'error');if(el)el.style.opacity='1';}}
-  catch(e){toast('Error','error');if(el)el.style.opacity='1';}
+  if(r.success){toast('Deleted','success');await openDayDetail(date);}
+  else{toast(r.message,'error');btn.disabled=false;btn.textContent='Delete';}}
+  catch(e){toast('Error','error');btn.disabled=false;btn.textContent='Delete';}
 }
 
 function exportCSV(){let csv='Name,Role,Days Worked,Hours\n';S.dash.forEach(e=>{csv+=`"${e.name}","${e.role}",${e.daysWorked},${e.monthHours.toFixed(2)}\n`;});const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`MIKAN_${S.yr}-${String(S.mo).padStart(2,'0')}.csv`;a.click();URL.revokeObjectURL(url);toast('Exported','success');}
