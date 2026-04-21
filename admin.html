@@ -405,7 +405,7 @@ function exportCSV(){let csv='Name,Role,Days Worked,Hours\n';S.dash.forEach(e=>{
 // ===== TIME OFF SECTION =====
 function renderTimeoff(m){
   let h=`<div class="page-header"><div><div class="page-title">🏖️ Time Off</div></div><button class="btn btn-primary" onclick="refresh()">🔄 Refresh</button></div>`;
-  h+=`<div class="tabs" id="toTabs"><button class="tab active" onclick="toTab('reqTab')">📋 Requests <span class="tab-badge" id="reqBadge">${S.pending.length||''}</span></button><button class="tab" onclick="toTab('ovTab')">📊 Overview</button><button class="tab" onclick="toTab('calTab')">📅 Calendar</button><button class="tab" onclick="toTab('cloTab')">🗓️ Closures</button></div>`;
+  h+=`<div class="tabs" id="toTabs"><button class="tab active" onclick="toTab('reqTab')">📋 Requests${S.pending.length?` <span class="tab-badge">${S.pending.length}</span>`:''}</button><button class="tab" onclick="toTab('ovTab')">📊 Overview</button><button class="tab" onclick="toTab('calTab')">📅 Calendar</button><button class="tab" onclick="toTab('cloTab')">🗓️ Closures</button></div>`;
   h+=`<div id="reqTab" class="tab-content active"></div><div id="ovTab" class="tab-content"></div><div id="calTab" class="tab-content"></div><div id="cloTab" class="tab-content"></div>`;
   m.innerHTML=h;renderReqTab();renderOvTab();renderCalTab();renderCloTab();
 }
@@ -486,27 +486,30 @@ function renderCalTab(){
   const monthLblV=S.calViewDate.toLocaleDateString('en-US',{month:'long',year:'numeric'});
   const todayHintV=isCurV?'':`<span style="color:var(--accent-dark);font-size:11px;font-weight:600;margin-left:6px">↺ Today</span>`;
   h+=`<div class="cal-nav"><button class="month-btn" onclick="calViewMo(-1)">‹</button><span class="cal-title" onclick="calViewJumpToday()" style="cursor:pointer">${monthLblV}${todayHintV}</span><button class="month-btn" onclick="calViewMo(1)">›</button></div>`;
-  h+=`<div class="cal-grid">`;
-  ['S','M','T','W','T','F','S'].forEach(d=>h+=`<div class="cal-hdr">${d}</div>`);
-  for(let i=0;i<start;i++)h+='<div class="cal-cell empty"></div>';
+  h+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px">`;
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d=>h+=`<div style="text-align:center;font-size:11px;font-weight:700;color:var(--text-dim);padding:8px 4px">${d}</div>`);
+  for(let i=0;i<start;i++)h+=`<div style="min-height:90px;background:transparent"></div>`;
   for(let d=1;d<=last.getDate();d++){
     const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const clo=cloMap[ds];const hols=holMap[ds]||[];
     const isT=y===now.getFullYear()&&m===now.getMonth()&&d===now.getDate();
-    const hasData=clo||hols.length>0;
-    let cls='cal-cell';if(hasData)cls+=' has-data';if(isT)cls+=' today';if(clo)cls+=' closure';
-    h+=`<div class="${cls}" style="align-items:flex-start;padding:4px;${clo?'background:#fef3c7;border-color:#fde68a':''}">`;
-    h+=`<div class="cal-day" style="font-size:11px">${d}</div>`;
-    if(clo)h+=`<div style="font-size:7px;color:#92400e;font-weight:600;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${clo}</div>`;
-    hols.slice(0,2).forEach(ho=>{
-      const colors={Annual:'#1e40af',Personal:'#5b21b6',Medical:'#991b1b',MedAppt:'#92400e'};
-      const bgs={Annual:'#dbeafe',Personal:'#ede9fe',Medical:'#fee2e2',MedAppt:'#fef3c7'};
-      h+=`<div style="font-size:7px;padding:1px 3px;border-radius:3px;background:${bgs[ho.type]||'#e5e7eb'};color:${colors[ho.type]||'#374151'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;margin-top:1px;opacity:${ho.status==='Pending'?'0.6':'1'}">${ho.name.split(' ')[0]}</div>`;
+    let cellStyle=`min-height:90px;background:#fff;border:2px solid var(--border);border-radius:8px;padding:6px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:2px`;
+    if(isT)cellStyle+=`;border-color:var(--accent-dark);box-shadow:0 0 0 2px rgba(212,149,110,0.2)`;
+    if(clo)cellStyle=cellStyle.replace('background:#fff','background:#fef3c7').replace('border-color:var(--border)','border-color:#fde68a');
+    h+=`<div style="${cellStyle}">`;
+    h+=`<div style="font-size:14px;font-weight:700;color:${clo?'#92400e':'var(--text)'}">${d}</div>`;
+    if(clo)h+=`<div style="font-size:9px;color:#92400e;font-weight:600;background:rgba(255,255,255,0.7);padding:2px 4px;border-radius:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${clo}</div>`;
+    const maxShow=3;
+    hols.slice(0,maxShow).forEach(ho=>{
+      const colors={Annual:{bg:'#dbeafe',c:'#1e40af'},Personal:{bg:'#ede9fe',c:'#5b21b6'},Medical:{bg:'#fee2e2',c:'#991b1b'},MedAppt:{bg:'#fef3c7',c:'#92400e'}};
+      const col=colors[ho.type]||{bg:'#e5e7eb',c:'#374151'};
+      const firstName=ho.name.split(' ')[0];
+      h+=`<div style="font-size:10px;padding:2px 5px;border-radius:3px;background:${col.bg};color:${col.c};font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:${ho.status==='Pending'?'0.55':'1'}">${firstName}</div>`;
     });
-    if(hols.length>2)h+=`<div style="font-size:7px;color:var(--text-dim)">+${hols.length-2} more</div>`;
+    if(hols.length>maxShow)h+=`<div style="font-size:10px;color:var(--text-dim);font-weight:600;padding:2px 5px;background:var(--bg);border-radius:3px">+${hols.length-maxShow} more</div>`;
     h+=`</div>`;
   }
-  h+=`</div></div></div>`;
+  h+=`</div>`;
   // Legend
   h+=`<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;padding:12px 14px;background:var(--cream);border:1px solid var(--border);border-radius:10px;font-size:12px;color:var(--text);font-weight:600">
     <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;border-radius:3px;background:#fef3c7;border:1px solid #fde68a;display:inline-block"></span>Closure</span>
@@ -515,6 +518,7 @@ function renderCalTab(){
     <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;border-radius:3px;background:#fee2e2;display:inline-block"></span>Sick</span>
     <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;border-radius:3px;background:#e5e7eb;opacity:0.6;display:inline-block"></span>Pending</span>
   </div>`;
+  h+=`</div></div>`;
   el.innerHTML=h;
 }
 function calViewMo(d){if(!S.calViewDate)S.calViewDate=new Date();S.calViewDate.setMonth(S.calViewDate.getMonth()+d);renderCalTab();}
