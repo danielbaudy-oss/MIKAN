@@ -230,13 +230,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <!-- Calendar Overlay -->
 <div class="overlay" id="calendarOverlay" onclick="closeOverlay(event,'calendar')">
   <div class="calendar-modal" onclick="event.stopPropagation()">
-    <div class="modal-header"><h3>📅 Pick a Date</h3><button class="modal-close" onclick="closeOverlay(null,'calendar')">✕</button></div>
+    <div class="modal-header"><h3>Pick a Date</h3><button class="modal-close" onclick="closeOverlay(null,'calendar')">✕</button></div>
     <div class="calendar-nav">
       <button class="calendar-nav-btn" onclick="calChangeMonth(-1)">‹</button>
       <span class="calendar-month" id="calendarMonth" onclick="calJumpToday()" style="cursor:pointer"></span>
       <button class="calendar-nav-btn" id="nextMonthBtn" onclick="calChangeMonth(1)">›</button>
     </div>
     <div class="calendar-grid" id="calendarGrid"></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;padding:10px 12px;background:var(--cream);border:1px solid var(--border);border-radius:10px;font-size:11px;color:var(--text);font-weight:600">
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:var(--accent);border:1px solid var(--accent-dark);display:inline-block"></span>Punched</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#fff;border:2px solid var(--accent-dark);display:inline-block"></span>Today</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:var(--accent-dark);display:inline-block"></span>Selected</span>
+    </div>
   </div>
 </div>
 
@@ -530,18 +535,29 @@ async function loadCalendarMonth() {
   const now=new Date(), isCurr=(y===now.getFullYear() && m-1===now.getMonth());
   const monthLabel = S.calendarDate.toLocaleDateString('en-US',{month:'long',year:'numeric'});
   $('calendarMonth').innerHTML = isCurr ? monthLabel : `${monthLabel} <span style="color:var(--accent-dark);font-size:11px;font-weight:600;margin-left:6px">↺ Today</span>`;
-  // Allow navigation up to 12 months in the future
   const maxFuture = new Date(now.getFullYear(), now.getMonth()+12, 0);
   const next=new Date(y,m,1);
   $('nextMonthBtn').disabled = next > maxFuture;
 
-  $('calendarGrid').innerHTML='<div style="grid-column:span 7;text-align:center;padding:20px"><div class="spinner" style="margin:0 auto 8px;width:24px;height:24px"></div></div>';
+  // Use cache if available — no spinner flash
+  const cacheKey = `${y}-${m}`;
+  if (!S.monthCache) S.monthCache = {};
+  if (S.monthCache[cacheKey]) {
+    S.punchedDays = S.monthCache[cacheKey];
+    renderCalendar();
+    return;
+  }
+
+  // First load of this month — render empty grid immediately, fetch in background
+  S.punchedDays = {};
+  renderCalendar();
 
   try {
     const r = await apiPost({ action:'getPunchedDays', employee:USER.id, year:String(y), month:String(m) });
     S.punchedDays = r.success ? r.days : {};
+    S.monthCache[cacheKey] = S.punchedDays;
+    renderCalendar();
   } catch(e) { S.punchedDays = {}; }
-  renderCalendar();
 }
 
 function renderCalendar() {
