@@ -233,7 +233,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="modal-header"><h3>📅 Pick a Date</h3><button class="modal-close" onclick="closeOverlay(null,'calendar')">✕</button></div>
     <div class="calendar-nav">
       <button class="calendar-nav-btn" onclick="calChangeMonth(-1)">‹</button>
-      <span class="calendar-month" id="calendarMonth"></span>
+      <span class="calendar-month" id="calendarMonth" onclick="calJumpToday()" style="cursor:pointer"></span>
       <button class="calendar-nav-btn" id="nextMonthBtn" onclick="calChangeMonth(1)">›</button>
     </div>
     <div class="calendar-grid" id="calendarGrid"></div>
@@ -527,9 +527,13 @@ async function saveEdit() {
 // ========== CALENDAR ==========
 async function loadCalendarMonth() {
   const y=S.calendarDate.getFullYear(), m=S.calendarDate.getMonth()+1;
-  $('calendarMonth').textContent = S.calendarDate.toLocaleDateString('en-US',{month:'long',year:'numeric'});
-  const next=new Date(y,m,1), today=new Date();
-  $('nextMonthBtn').disabled = next>new Date(today.getFullYear(),today.getMonth()+1,0);
+  const now=new Date(), isCurr=(y===now.getFullYear() && m-1===now.getMonth());
+  const monthLabel = S.calendarDate.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  $('calendarMonth').innerHTML = isCurr ? monthLabel : `${monthLabel} <span style="color:var(--accent-dark);font-size:11px;font-weight:600;margin-left:6px">↺ Today</span>`;
+  // Allow navigation up to 12 months in the future
+  const maxFuture = new Date(now.getFullYear(), now.getMonth()+12, 0);
+  const next=new Date(y,m,1);
+  $('nextMonthBtn').disabled = next > maxFuture;
 
   $('calendarGrid').innerHTML='<div style="grid-column:span 7;text-align:center;padding:20px"><div class="spinner" style="margin:0 auto 8px;width:24px;height:24px"></div></div>';
 
@@ -561,8 +565,17 @@ function renderCalendar() {
 
 function selectDate(y,m,d) { S.currentDate=new Date(y,m,d); closeOverlay(null,'calendar'); loadDayData(); }
 function calChangeMonth(dir) {
-  if(dir>0){const next=new Date(S.calendarDate.getFullYear(),S.calendarDate.getMonth()+1,1),today=new Date();if(next>new Date(today.getFullYear(),today.getMonth()+1,0))return;}
+  if(dir>0){
+    const now=new Date();
+    const maxFuture=new Date(now.getFullYear(), now.getMonth()+12, 0);
+    const next=new Date(S.calendarDate.getFullYear(), S.calendarDate.getMonth()+2, 0);
+    if(next>maxFuture)return;
+  }
   S.calendarDate.setMonth(S.calendarDate.getMonth()+dir); loadCalendarMonth();
+}
+function calJumpToday() {
+  S.calendarDate = new Date();
+  loadCalendarMonth();
 }
 
 // ========== HOLIDAYS TAB ==========

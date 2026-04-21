@@ -158,7 +158,7 @@ async function api(d){
   if(a==='editEmployee') return API.editEmployee(d);
   if(a==='deleteEmployee') return API.deleteEmployee(d.employee);
   if(a==='approveHoliday') return API.approveHoliday(d.requestId);
-  if(a==='rejectHoliday') return API.rejectHoliday(d.requestId);
+  if(a==='rejectHoliday') return API.rejectHoliday(d.requestId,d.reason);
   if(a==='addClosure') return API.addClosure(d.name,d.startDate,d.endDate);
   if(a==='deleteClosure') return API.deleteClosure(d.closureId);
   if(a==='getDayData') return API.getDayData(d.employee,d.date);
@@ -312,17 +312,23 @@ async function loadEmpCal(){
 function renderEmpCal(){
   const y=S.calDate.getFullYear(),m=S.calDate.getMonth(),first=new Date(y,m,1),last=new Date(y,m+1,0),start=first.getDay();
   const now=new Date(),isCur=y===now.getFullYear()&&m===now.getMonth();
-  let h=`<div class="cal-nav"><button class="month-btn" onclick="calMo(-1)">‹</button><span class="cal-title">${S.calDate.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</span><button class="month-btn" onclick="calMo(1)" ${isCur?'disabled':''}>›</button></div><div class="cal-grid">`;
+  const maxFuture=new Date(now.getFullYear(), now.getMonth()+12, 0);
+  const canNext=new Date(y,m+1,1)<=maxFuture;
+  const monthLbl=S.calDate.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const todayHint=isCur?'':`<span style="color:var(--accent-dark);font-size:11px;font-weight:600;margin-left:6px">↺ Today</span>`;
+  let h=`<div class="cal-nav"><button class="month-btn" onclick="calMo(-1)">‹</button><span class="cal-title" onclick="calJumpToday()" style="cursor:pointer">${monthLbl}${todayHint}</span><button class="month-btn" onclick="calMo(1)" ${canNext?'':'disabled'}>›</button></div><div class="cal-grid">`;
   ['S','M','T','W','T','F','S'].forEach(d=>h+=`<div class="cal-hdr">${d}</div>`);
   for(let i=0;i<start;i++)h+='<div class="cal-cell empty"></div>';
   for(let d=1;d<=last.getDate();d++){
     const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const p=S.empPunched[ds];const has=p&&p.count>0;
-    const isT=y===now.getFullYear()&&m===now.getMonth()&&d===now.getDate();    h+=`<div class="cal-cell${has?' has-data':''}${isT?' today':''}" onclick="openDayDetail('${ds}')"><div class="cal-day">${d}</div>${has?`<div class="cal-sub">${p.count} punches</div>`:''}</div>`;
+    const isT=y===now.getFullYear()&&m===now.getMonth()&&d===now.getDate();
+    h+=`<div class="cal-cell${has?' has-data':''}${isT?' today':''}" onclick="openDayDetail('${ds}')"><div class="cal-day">${d}</div>${has?`<div class="cal-sub">${p.count} punches</div>`:''}</div>`;
   }
   h+='</div>';$('mBody').innerHTML=h;
 }
 function calMo(d){S.calDate.setMonth(S.calDate.getMonth()+d);loadEmpCal();}
+function calJumpToday(){S.calDate=new Date();loadEmpCal();}
 // Parse date string as local (avoids UTC off-by-one)
 function parseDateLocal(ds){const[y,m,d]=ds.split('-').map(Number);return new Date(y,m-1,d);}
 
@@ -476,7 +482,10 @@ function renderCalTab(){
   });
 
   let h=`<div class="card"><div class="card-body">`;
-  h+=`<div class="cal-nav"><button class="month-btn" onclick="calViewMo(-1)">‹</button><span class="cal-title">${S.calViewDate.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</span><button class="month-btn" onclick="calViewMo(1)">›</button></div>`;
+  const nowV=new Date(),isCurV=S.calViewDate.getFullYear()===nowV.getFullYear()&&S.calViewDate.getMonth()===nowV.getMonth();
+  const monthLblV=S.calViewDate.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const todayHintV=isCurV?'':`<span style="color:var(--accent-dark);font-size:11px;font-weight:600;margin-left:6px">↺ Today</span>`;
+  h+=`<div class="cal-nav"><button class="month-btn" onclick="calViewMo(-1)">‹</button><span class="cal-title" onclick="calViewJumpToday()" style="cursor:pointer">${monthLblV}${todayHintV}</span><button class="month-btn" onclick="calViewMo(1)">›</button></div>`;
   h+=`<div class="cal-grid">`;
   ['S','M','T','W','T','F','S'].forEach(d=>h+=`<div class="cal-hdr">${d}</div>`);
   for(let i=0;i<start;i++)h+='<div class="cal-cell empty"></div>';
@@ -509,6 +518,7 @@ function renderCalTab(){
   el.innerHTML=h;
 }
 function calViewMo(d){if(!S.calViewDate)S.calViewDate=new Date();S.calViewDate.setMonth(S.calViewDate.getMonth()+d);renderCalTab();}
+function calViewJumpToday(){S.calViewDate=new Date();renderCalTab();}
 
 function renderCloTab(){
   const el=$('cloTab');if(!el)return;
@@ -542,7 +552,23 @@ async function saveEdit(id){const btn=document.querySelector('#mBody .btn-save')
 async function delEmp(id,n){if(!confirm(`Delete ${n}?`))return;const btn=event.target;btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'deleteEmployee',employee:id});if(r.success){toast('Deleted','success');await loadAll(true);render();}else{toast(r.message,'error');btn.disabled=false;btn.textContent='🗑️';}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='🗑️';}}
 
 // ===== TIME OFF ACTIONS =====
-async function actReq(id,a){const btn=event.target;const orig=btn.textContent;btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:a==='approve'?'approveHoliday':'rejectHoliday',requestId:id});if(r.success){toast(a==='approve'?'Request approved':'Request cancelled','success');await loadAll(true);render();}else{toast(r.message,'error');btn.disabled=false;btn.textContent=orig;}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent=orig;}}
+async function actReq(id,a){
+  // Approve goes through directly, reject/cancel requires reason
+  if(a==='reject'){
+    openModal(a==='approve'?'Approve Request':'Cancel Request',`<p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">Please provide a reason for cancelling this time off request.</p><div class="fg"><label class="fl">Reason *</label><input type="text" id="rejReason" class="fi" placeholder="e.g., Dates changed, request no longer needed..."></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Back</button><button class="btn-save" id="rejSave" onclick="doReject('${id}')" style="background:var(--danger)">Cancel Request</button></div>`);
+    return;
+  }
+  const btn=event.target;const orig=btn.textContent;btn.disabled=true;btn.textContent='⏳';
+  try{const r=await api({action:'approveHoliday',requestId:id});if(r.success){toast('Request approved','success');await loadAll(true);render();}else{toast(r.message,'error');btn.disabled=false;btn.textContent=orig;}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent=orig;}
+}
+
+async function doReject(id){
+  const reason=$('rejReason').value.trim();
+  if(!reason)return toast('Please provide a reason','error');
+  const btn=$('rejSave');btn.disabled=true;btn.textContent='⏳';
+  try{const r=await api({action:'rejectHoliday',requestId:id,reason});if(r.success){toast('Request cancelled','success');closeModal();await loadAll(true);render();}else{toast(r.message,'error');btn.disabled=false;btn.textContent='Cancel Request';}}
+  catch(e){toast('Error','error');btn.disabled=false;btn.textContent='Cancel Request';}
+}
 function addClo(){openModal('➕ Add Closure',`<div class="fg"><label class="fl">Name</label><input type="text" id="cN" class="fi" placeholder="e.g., New Year's Day"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Start</label><input type="date" id="cS" class="fi"></div><div class="fg"><label class="fl">End</label><input type="date" id="cE" class="fi"></div></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveClo()">➕ Add</button></div>`);}
 async function saveClo(){const n=$('cN').value,s=$('cS').value,e=$('cE').value;if(!n||!s||!e)return toast('All fields required','error');const btn=document.querySelector('#mBody .btn-save');btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'addClosure',name:n,startDate:s,endDate:e});if(r.success){toast('Added','success');closeModal();await loadAll(true);render();}else{toast(r.message,'error');btn.disabled=false;btn.textContent='➕ Add';}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='➕ Add';}}
 async function delClo(id){if(!confirm('Delete?'))return;const btn=event.target;btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'deleteClosure',closureId:id});if(r.success){toast('Deleted','success');await loadAll(true);render();}else{toast(r.message,'error');btn.disabled=false;btn.textContent='🗑️';}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='🗑️';}}

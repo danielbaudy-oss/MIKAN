@@ -200,8 +200,10 @@ const API = {
     if (error) throw error;
     return { success: true, message: 'Request approved' };
   },
-  async rejectHoliday(id) {
-    const { error } = await (await getSB()).from('holidays').update({ status: 'Rejected', updated_at: new Date().toISOString() }).eq('id', id);
+  async rejectHoliday(id, reason) {
+    const update = { status: 'Rejected', updated_at: new Date().toISOString() };
+    if (reason) update.reason = `[CANCELLED] ${reason}`;
+    const { error } = await (await getSB()).from('holidays').update(update).eq('id', id);
     if (error) throw error;
     return { success: true, message: 'Request rejected' };
   },
