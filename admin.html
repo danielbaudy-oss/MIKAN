@@ -484,7 +484,36 @@ function exportCSV(){let csv='Name,Role,Days Worked,Hours\n';S.dash.forEach(e=>{
 <script>
 // ===== TIME OFF SECTION =====
 function renderTimeoff(m){
+  // Compute team-wide usage stats for the header cards.
+  // Filter approved holidays to the current year (S.yr) so stats reset annually.
+  const yr = S.yr;
+  const active = (S.emps||[]).filter(e => e.status === 'Active');
+  const approved = (S.approvedHols||[]).filter(r => {
+    const y = parseInt((r.startDate||'').slice(0,4), 10);
+    return y === yr;
+  });
+  const sumApproved = (type, field) => approved
+    .filter(r => r.type === type)
+    .reduce((s, r) => s + (Number(r[field]) || 0), 0);
+  const totalAnnualAllocated = active.reduce((s,e) => s + (e.annualDays||0), 0);
+  const totalPersonalAllocated = active.reduce((s,e) => s + (e.personalDays||0), 0);
+  const totalMedHoursAllocated = active.reduce((s,e) => s + (e.medicalHours||0), 0);
+  const usedAnnual = sumApproved('Annual', 'days');
+  const usedPersonal = sumApproved('Personal', 'days');
+  // MedAppt is hour-based in the employee view — days field holds the hours count
+  const usedMedAppt = sumApproved('MedAppt', 'days');
+  const pct = (used, total) => total > 0 ? Math.round((used/total)*100) : 0;
+  const annualPct = pct(usedAnnual, totalAnnualAllocated);
+  const personalPct = pct(usedPersonal, totalPersonalAllocated);
+  const medPct = pct(usedMedAppt, totalMedHoursAllocated);
+  const pending = S.pending.length;
+
   let h=`<div class="page-header"><div><div class="page-title">🏖️ Time Off</div></div><button class="btn btn-primary" onclick="refresh()">🔄 Refresh</button></div>`;
+  // Stats cards — matches the "Employee Hours" card style
+  h+=`<div class="stats-grid"><div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-value" style="${pending?'color:#92400e':''}">${pending}</div><div class="stat-label">Pending</div></div>`;
+  h+=`<div class="stat-card"><div class="stat-icon">🏖️</div><div class="stat-value">${annualPct}%</div><div class="stat-label">Vacation · ${usedAnnual}/${totalAnnualAllocated}d</div></div>`;
+  h+=`<div class="stat-card"><div class="stat-icon">👤</div><div class="stat-value">${personalPct}%</div><div class="stat-label">Personal · ${usedPersonal}/${totalPersonalAllocated}d</div></div>`;
+  h+=`<div class="stat-card"><div class="stat-icon">🏥</div><div class="stat-value">${medPct}%</div><div class="stat-label">Med. Visit · ${usedMedAppt}/${totalMedHoursAllocated}h</div></div></div>`;
   h+=`<div class="tabs" id="toTabs"><button class="tab active" onclick="toTab('reqTab')">📋 Requests${S.pending.length?` <span class="tab-badge">${S.pending.length}</span>`:''}</button><button class="tab" onclick="toTab('ovTab')">📊 Overview</button><button class="tab" onclick="toTab('calTab')">📅 Calendar</button><button class="tab" onclick="toTab('cloTab')">🗓️ Closures</button></div>`;
   h+=`<div id="reqTab" class="tab-content active"></div><div id="ovTab" class="tab-content"></div><div id="calTab" class="tab-content"></div><div id="cloTab" class="tab-content"></div>`;
   m.innerHTML=h;renderReqTab();renderOvTab();renderCalTab();renderCloTab();
