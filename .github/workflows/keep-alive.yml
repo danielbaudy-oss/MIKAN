@@ -1,0 +1,21 @@
+name: Supabase Keep-Alive
+
+# Runs every 3 days to prevent Supabase free-tier auto-pause
+# (Supabase auto-pauses a project after 7 consecutive days of no activity).
+on:
+  schedule:
+    - cron: '30 9 */3 * *'  # 09:30 UTC every 3 days (offset from WorldClass to spread load)
+  workflow_dispatch:        # allow manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping MIKAN Restaurant
+        run: |
+          echo "Pinging MIKAN Supabase..."
+          curl -sS -f \
+            -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4Ym1sc2J4bnp2Z3p1Y3hsZW95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzE3ODgsImV4cCI6MjA5MTI0Nzc4OH0.OrKHnYy0vElWI9bQ-xYlE2RXy1TU2FknBPafp--3jMY" \
+            -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4Ym1sc2J4bnp2Z3p1Y3hsZW95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzE3ODgsImV4cCI6MjA5MTI0Nzc4OH0.OrKHnYy0vElWI9bQ-xYlE2RXy1TU2FknBPafp--3jMY" \
+            "https://kxbmlsbxnzvgzucxleoy.supabase.co/rest/v1/employees?select=id&limit=1" \
+            > /dev/null && echo "✓ MIKAN responded"
