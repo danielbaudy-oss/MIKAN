@@ -679,23 +679,128 @@ async function exportAuditReport(){
   toast('Generating audit report...','success');
   try{
     const sb=await getSB();
-    const[pR,aR,eR]=await Promise.all([sb.from('punches').select('*').eq('is_deleted',false).order('punch_date',{ascending:false}).order('punch_time',{ascending:false}),sb.from('audit_log').select('*').order('changed_at',{ascending:false}),sb.from('employees').select('id,name')]);
-    const punches=pR.data||[];const changes=(aR.data||[]).filter(a=>a.action==='UPDATE'||a.action==='DELETE');const eMap={};(eR.data||[]).forEach(e=>{eMap[e.id]=e.name;});const now=new Date().toLocaleString('en-US');
-    let x='<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Styles><Style ss:ID="title"><Font ss:Bold="1" ss:Size="14" ss:Color="#FFFFFF"/><Interior ss:Color="#d4956e" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style><Style ss:ID="header"><Font ss:Bold="1" ss:Size="10" ss:Color="#FFFFFF"/><Interior ss:Color="#d4956e" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style><Style ss:ID="header2"><Font ss:Bold="1" ss:Size="10" ss:Color="#FFFFFF"/><Interior ss:Color="#8b5cf6" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style><Style ss:ID="update"><Interior ss:Color="#fef3c7" ss:Pattern="Solid"/></Style><Style ss:ID="delete"><Interior ss:Color="#fee2e2" ss:Pattern="Solid"/></Style><Style ss:ID="info"><Interior ss:Color="#f1f5f9" ss:Pattern="Solid"/><Font ss:Size="9"/></Style><Style ss:ID="small"><Font ss:Size="8"/></Style></Styles>';
+    const[pR,aR,eR]=await Promise.all([
+      sb.from('punches').select('*').order('punch_date',{ascending:false}).order('punch_time',{ascending:false}),
+      sb.from('audit_log').select('*').order('changed_at',{ascending:false}),
+      sb.from('employees').select('id,name')
+    ]);
+    const punches=pR.data||[];
+    const eMap={};(eR.data||[]).forEach(e=>{eMap[e.id]=e.name;});
+    const now=new Date().toLocaleString('en-US');
+
+    // --- Filter audit rows to operationally meaningful events --------------
+    // Skip rows that are only a cascaded employee_name change (the
+    // propagate_employee_name trigger fires whenever an employee is renamed —
+    // that's not an operational edit and would drown real events).
+    const auditRows=(aR.data||[]).filter(a=>{
+      if(a.action==='INSERT')return true;
+      if(a.action==='DELETE')return true;
+      if(a.action==='UPDATE'&&a.old_data&&a.new_data){
+        const keys=new Set([...Object.keys(a.old_data),...Object.keys(a.new_data)]);
+        for(const k of keys){
+          if(k==='employee_name')continue;
+          if(JSON.stringify(a.old_data[k])!==JSON.stringify(a.new_data[k]))return true;
+        }
+        return false;
+      }
+      return true;
+    });
+
+    // Describe a single audit row as a human-readable change summary
+    // (compares old vs new, picks out the meaningful fields).
+    const describeChange=(a)=>{
+      if(a.action==='INSERT')return'Created';
+      if(a.action==='DELETE')return'Permanently deleted';
+      const o=a.old_data||{}, n=a.new_data||{};
+      const parts=[];
+      // Soft-delete flip
+      if(o.is_deleted===false&&n.is_deleted===true)parts.push('Marked deleted'+(n.deleted_reason?` — reason: "${n.deleted_reason}"`:''));
+      else if(o.is_deleted===true&&n.is_deleted===false)parts.push('Restored from deletion');
+      // Punch time edit
+      if(o.punch_time&&n.punch_time&&o.punch_time!==n.punch_time){
+        parts.push(`Time: ${(o.punch_time||'').substring(0,5)} → ${(n.punch_time||'').substring(0,5)}`+(n.edit_reason?` — reason: "${n.edit_reason}"`:''));
+      }
+      if(o.punch_type&&n.punch_type&&o.punch_type!==n.punch_type){
+        parts.push(`Type: ${o.punch_type} → ${n.punch_type}`);
+      }
+      // Holiday status flip
+      if(o.status&&n.status&&o.status!==n.status){
+        parts.push(`Status: ${o.status} → ${n.status}`);
+      }
+      // Employee name change
+      if(o.name&&n.name&&o.name!==n.name){
+        parts.push(`Name: ${o.name} → ${n.name}`);
+      }
+      return parts.length?parts.join(' · '):'Modified';
+    };
+
+    const esc=(s)=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const cell=(v,style)=>`<Cell${style?` ss:StyleID="${style}"`:''}><Data ss:Type="String">${esc(v)}</Data></Cell>`;
+
+    let x='<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">';
+    x+='<Styles><Style ss:ID="title"><Font ss:Bold="1" ss:Size="14" ss:Color="#FFFFFF"/><Interior ss:Color="#d4956e" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>';
+    x+='<Style ss:ID="header"><Font ss:Bold="1" ss:Size="10" ss:Color="#FFFFFF"/><Interior ss:Color="#d4956e" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>';
+    x+='<Style ss:ID="header2"><Font ss:Bold="1" ss:Size="10" ss:Color="#FFFFFF"/><Interior ss:Color="#8b5cf6" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>';
+    x+='<Style ss:ID="edited"><Interior ss:Color="#fef3c7" ss:Pattern="Solid"/></Style>';
+    x+='<Style ss:ID="deleted"><Interior ss:Color="#fee2e2" ss:Pattern="Solid"/><Font ss:Italic="1"/></Style>';
+    x+='<Style ss:ID="info"><Interior ss:Color="#f1f5f9" ss:Pattern="Solid"/><Font ss:Size="9"/></Style>';
+    x+='<Style ss:ID="small"><Font ss:Size="9"/><Alignment ss:WrapText="1" ss:Vertical="Top"/></Style></Styles>';
+
+    // === PUNCHES SHEET ==================================================
     x+='<Worksheet ss:Name="Punches"><Table>';
-    x+='<Row><Cell ss:StyleID="title" ss:MergeAcross="7"><Data ss:Type="String">PUNCH RECORDS — MIKAN Restaurant</Data></Cell></Row>';
-    x+='<Row><Cell ss:StyleID="info" ss:MergeAcross="3"><Data ss:Type="String">Exported: '+now+'</Data></Cell><Cell ss:StyleID="info" ss:MergeAcross="3"><Data ss:Type="String">Total: '+punches.length+' records</Data></Cell></Row>';
-    x+='<Row><Cell ss:StyleID="header"><Data ss:Type="String">Employee</Data></Cell><Cell ss:StyleID="header"><Data ss:Type="String">Date</Data></Cell><Cell ss:StyleID="header"><Data ss:Type="String">Time</Data></Cell><Cell ss:StyleID="header"><Data ss:Type="String">Type</Data></Cell><Cell ss:StyleID="header"><Data ss:Type="String">GPS Lat</Data></Cell><Cell ss:StyleID="header"><Data ss:Type="String">GPS Lng</Data></Cell><Cell ss:StyleID="header"><Data ss:Type="String">Edit Reason</Data></Cell><Cell ss:StyleID="header"><Data ss:Type="String">Recorded</Data></Cell></Row>';
-    punches.forEach(p=>{x+='<Row><Cell><Data ss:Type="String">'+(p.employee_name||'')+'</Data></Cell><Cell><Data ss:Type="String">'+p.punch_date+'</Data></Cell><Cell><Data ss:Type="String">'+(p.punch_time||'').substring(0,5)+'</Data></Cell><Cell><Data ss:Type="String">'+p.punch_type+'</Data></Cell><Cell><Data ss:Type="String">'+(p.latitude||'')+'</Data></Cell><Cell><Data ss:Type="String">'+(p.longitude||'')+'</Data></Cell><Cell><Data ss:Type="String">'+(p.edit_reason||'')+'</Data></Cell><Cell><Data ss:Type="String">'+new Date(p.created_at).toLocaleString('en-US')+'</Data></Cell></Row>';});
+    x+=`<Row><Cell ss:StyleID="title" ss:MergeAcross="8"><Data ss:Type="String">PUNCH RECORDS — MIKAN Restaurant</Data></Cell></Row>`;
+    x+=`<Row><Cell ss:StyleID="info" ss:MergeAcross="4"><Data ss:Type="String">Exported: ${esc(now)}</Data></Cell><Cell ss:StyleID="info" ss:MergeAcross="3"><Data ss:Type="String">Total: ${punches.length} records (incl. deleted)</Data></Cell></Row>`;
+    ['Employee','Date','Time','Type','Status','GPS Lat','GPS Lng','Edit / Delete Reason','Recorded'].forEach(()=>{});
+    x+='<Row>'+['Employee','Date','Time','Type','Status','GPS Lat','GPS Lng','Edit / Delete Reason','Recorded']
+      .map(h=>`<Cell ss:StyleID="header"><Data ss:Type="String">${h}</Data></Cell>`).join('')+'</Row>';
+    punches.forEach(p=>{
+      const status=p.is_deleted?'Deleted':(p.edited_at?'Edited':'Active');
+      const style=p.is_deleted?'deleted':(p.edited_at?'edited':'');
+      const reason=p.is_deleted?(p.deleted_reason||''):(p.edit_reason||'');
+      x+='<Row>'
+        +cell(p.employee_name,style)
+        +cell(p.punch_date,style)
+        +cell((p.punch_time||'').substring(0,5),style)
+        +cell(p.punch_type,style)
+        +cell(status,style)
+        +cell(p.latitude,style)
+        +cell(p.longitude,style)
+        +cell(reason,style)
+        +cell(new Date(p.created_at).toLocaleString('en-US'),style)
+        +'</Row>';
+    });
     x+='</Table></Worksheet>';
+
+    // === AUDIT TRAIL SHEET =============================================
     x+='<Worksheet ss:Name="Audit Trail"><Table>';
-    x+='<Row><Cell ss:StyleID="title" ss:MergeAcross="5"><Data ss:Type="String">AUDIT TRAIL — Changes &amp; Deletions</Data></Cell></Row>';
-    x+='<Row><Cell ss:StyleID="info" ss:MergeAcross="2"><Data ss:Type="String">Total: '+changes.length+' changes</Data></Cell><Cell ss:StyleID="info" ss:MergeAcross="2"><Data ss:Type="String">Automatic &amp; tamper-proof log</Data></Cell></Row>';
-    x+='<Row><Cell ss:StyleID="header2"><Data ss:Type="String">Date/Time</Data></Cell><Cell ss:StyleID="header2"><Data ss:Type="String">Table</Data></Cell><Cell ss:StyleID="header2"><Data ss:Type="String">Action</Data></Cell><Cell ss:StyleID="header2"><Data ss:Type="String">Changed By</Data></Cell><Cell ss:StyleID="header2"><Data ss:Type="String">Old Data</Data></Cell><Cell ss:StyleID="header2"><Data ss:Type="String">New Data</Data></Cell></Row>';
-    if(changes.length){changes.forEach(a=>{const who=eMap[a.changed_by]||a.changed_by||'System';const sid=a.action==='UPDATE'?'update':'delete';const lbl=a.action==='UPDATE'?'Modified':'Deleted';x+='<Row><Cell ss:StyleID="'+sid+'"><Data ss:Type="String">'+new Date(a.changed_at).toLocaleString('en-US')+'</Data></Cell><Cell ss:StyleID="'+sid+'"><Data ss:Type="String">'+a.table_name+'</Data></Cell><Cell ss:StyleID="'+sid+'"><Data ss:Type="String">'+lbl+'</Data></Cell><Cell ss:StyleID="'+sid+'"><Data ss:Type="String">'+who+'</Data></Cell><Cell ss:StyleID="small"><Data ss:Type="String">'+(a.old_data?JSON.stringify(a.old_data).substring(0,500):'')+'</Data></Cell><Cell ss:StyleID="small"><Data ss:Type="String">'+(a.new_data?JSON.stringify(a.new_data).substring(0,500):'')+'</Data></Cell></Row>';});}
-    else{x+='<Row><Cell ss:MergeAcross="5"><Data ss:Type="String">No modifications or deletions recorded</Data></Cell></Row>';}
+    x+=`<Row><Cell ss:StyleID="title" ss:MergeAcross="4"><Data ss:Type="String">AUDIT TRAIL — Every Change, Tamper-Proof</Data></Cell></Row>`;
+    x+=`<Row><Cell ss:StyleID="info" ss:MergeAcross="2"><Data ss:Type="String">Total: ${auditRows.length} events</Data></Cell><Cell ss:StyleID="info" ss:MergeAcross="1"><Data ss:Type="String">Generated by Postgres triggers</Data></Cell></Row>`;
+    x+='<Row>'+['When','Table','Event','Who','Details']
+      .map(h=>`<Cell ss:StyleID="header2"><Data ss:Type="String">${h}</Data></Cell>`).join('')+'</Row>';
+    if(!auditRows.length){
+      x+=`<Row><Cell ss:MergeAcross="4"><Data ss:Type="String">No modifications or deletions recorded</Data></Cell></Row>`;
+    } else {
+      auditRows.forEach(a=>{
+        const style=a.action==='DELETE'?'deleted':(a.action==='UPDATE'?'edited':'');
+        const who=a.changed_by||'System';
+        const label={INSERT:'Created',UPDATE:'Modified',DELETE:'Deleted'}[a.action]||a.action;
+        x+='<Row>'
+          +cell(new Date(a.changed_at).toLocaleString('en-US'),style)
+          +cell(a.table_name,style)
+          +cell(label,style)
+          +cell(who,style)
+          +cell(describeChange(a),style||'small')
+          +'</Row>';
+      });
+    }
     x+='</Table></Worksheet></Workbook>';
-    const blob=new Blob([x],{type:'application/vnd.ms-excel;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;const d=new Date();a.download=`MIKAN_audit_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.xls`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+
+    const blob=new Blob([x],{type:'application/vnd.ms-excel;charset=utf-8;'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;
+    const d=new Date();
+    a.download=`MIKAN_audit_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.xls`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
     toast('Audit report exported','success');
   }catch(e){toast('Error: '+e.message,'error');}
 }
