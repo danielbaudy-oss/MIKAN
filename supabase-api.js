@@ -15,16 +15,76 @@ async function getSB() {
 }
 
 // ============================================
+// AUTH HELPERS (Google OAuth via Supabase)
+// ============================================
+
+// Signs in with Google. Redirects to the current site URL after login.
+async function signInWithGoogle() {
+  const sb = await getSB();
+  const redirectTo = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo, queryParams: { prompt: 'select_account' } }
+  });
+  if (error) throw error;
+}
+
+async function signOut() {
+  const sb = await getSB();
+  await sb.auth.signOut();
+  window.location.href = 'index.html';
+}
+
+async function getSession() {
+  const sb = await getSB();
+  const { data } = await sb.auth.getSession();
+  return data.session;
+}
+
+// Gets the current employee row linked to the signed-in Google account.
+// Returns null if not signed in, or if no matching employee exists.
+// On first sign-in, calls link_employee_by_email to tie the auth user to the row.
+async function getCurrentEmployee() {
+  const session = await getSession();
+  if (!session) return null;
+  const sb = await getSB();
+  const email = session.user.email;
+  const uid = session.user.id;
+  // Try fast path: already-linked row
+  let { data } = await sb.from('employees').select('*').eq('auth_user_id', uid).maybeSingle();
+  if (data) return mapEmployeeRow(data);
+  // Link by email and re-fetch
+  const { data: linkRes, error: linkErr } = await sb.rpc('link_employee_by_email', { p_email: email });
+  if (linkErr || !linkRes?.success) return null;
+  ({ data } = await sb.from('employees').select('*').eq('auth_user_id', uid).maybeSingle());
+  return data ? mapEmployeeRow(data) : null;
+}
+
+function mapEmployeeRow(e) {
+  return {
+    id: e.id, name: e.name, email: e.email, role: e.role, status: e.status,
+    annualDays: e.annual_days, personalDays: e.personal_days,
+    expectedHours: e.expected_hours, medicalHours: e.medical_hours
+  };
+}
+
+// Convenience for pages: redirects to index.html unless a valid Active employee is signed in.
+// allowedRoles (optional array) restricts by role. Returns the employee on success.
+async function requireAuth(allowedRoles) {
+  const emp = await getCurrentEmployee();
+  if (!emp || emp.status !== 'Active' || (allowedRoles && !allowedRoles.includes(emp.role))) {
+    window.location.href = 'index.html';
+    return null;
+  }
+  return emp;
+}
+
+// ============================================
 // API FUNCTIONS
 // ============================================
 const API = {
-  // AUTH
-  async login(pin) {
-    const { data, error } = await (await getSB()).from('employees').select('id,name,role,pin').eq('pin', pin).eq('status', 'Active');
-    if (error) throw error;
-    if (!data.length) return { success: false, message: 'Invalid PIN or inactive account' };
-    return { success: true, employee: data[0] };
-  },
+  // AUTH — exposed for pages that prefer calling via the API object
+  signInWithGoogle, signOut, getSession, getCurrentEmployee, requireAuth,
 
   // PUNCHES
   async getDayData(employeeId, date) {
@@ -151,35 +211,52 @@ const API = {
     const { data, error } = await (await getSB()).from('employees').select('*').order('name');
     if (error) throw error;
     return { success: true, employees: (data||[]).map(e => ({
-      id: e.id, name: e.name, pin: e.pin, role: e.role, status: e.status,
+      id: e.id, name: e.name, email: e.email, role: e.role, status: e.status,
       annualDays: e.annual_days, personalDays: e.personal_days,
-      expectedHours: e.expected_hours, medicalHours: e.medical_hours
+      expectedHours: e.expected_hours, medicalHours: e.medical_hours,
+      linked: !!e.auth_user_id
     })) };
   },
   async addEmployee(params) {
     const name = (params.name||'').toUpperCase().trim();
+    const email = (params.email||'').toLowerCase().trim() || null;
     if (!name) return { success: false, message: 'Name is required' };
-    const pin = params.pin || String(Math.floor(1000 + Math.random() * 9000));
-    const { data: existing } = await (await getSB()).from('employees').select('id').eq('pin', pin);
-    if (existing?.length) return { success: false, message: 'PIN already in use' };
+    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      return { success: false, message: 'Invalid email' };
+    }
+    // Check email collision
+    if (email) {
+      const { data: existing } = await (await getSB()).from('employees').select('id').eq('email', email);
+      if (existing?.length) return { success: false, message: 'An employee with that email already exists' };
+    }
     const { data, error } = await (await getSB()).from('employees').insert({
-      name, pin, role: params.role||'employee',
-      annual_days: params.annualDays||30, personal_days: params.personalDays||2,
-      expected_hours: params.expectedHours||1791, medical_hours: params.medicalHours||20
+      name, email, role: params.role || 'employee',
+      status: email ? 'Active' : 'Pending',
+      annual_days: params.annualDays || 30,
+      personal_days: params.personalDays || 2,
+      expected_hours: params.expectedHours || 1791,
+      medical_hours: params.medicalHours || 20
     }).select();
     if (error) throw error;
-    return { success: true, id: data[0].id, pin, message: `Employee ${name} added with PIN: ${pin}` };
+    return { success: true, id: data[0].id, message: `Employee ${name} added` };
   },
   async editEmployee(params) {
     const data = {};
-    if (params.name) data.name = params.name.toUpperCase();
-    if (params.pin) {
-      const { data: existing } = await (await getSB()).from('employees').select('id').eq('pin', params.pin).neq('id', params.id);
-      if (existing?.length) return { success: false, message: 'PIN already in use' };
-      data.pin = params.pin;
+    if (params.name !== undefined) data.name = params.name.toUpperCase();
+    if (params.email !== undefined) {
+      const email = (params.email||'').toLowerCase().trim() || null;
+      if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+        return { success: false, message: 'Invalid email' };
+      }
+      if (email) {
+        const { data: existing } = await (await getSB()).from('employees')
+          .select('id').eq('email', email).neq('id', params.id);
+        if (existing?.length) return { success: false, message: 'An employee with that email already exists' };
+      }
+      data.email = email;
     }
-    if (params.role) data.role = params.role;
-    if (params.status) data.status = params.status;
+    if (params.role !== undefined) data.role = params.role;
+    if (params.status !== undefined) data.status = params.status;
     if (params.annualDays !== undefined) data.annual_days = Number(params.annualDays);
     if (params.personalDays !== undefined) data.personal_days = Number(params.personalDays);
     if (params.expectedHours !== undefined) data.expected_hours = Number(params.expectedHours);
@@ -262,9 +339,10 @@ const API = {
       const yearCalc = calcMins(allYearPunches.filter(p => p.employee_id === emp.id));
       const yearHours = Math.round((yearCalc.totalMins/60)*100)/100;
       return {
-        id: emp.id, name: emp.name, role: emp.role, pin: emp.pin, status: emp.status,
+        id: emp.id, name: emp.name, email: emp.email, role: emp.role, status: emp.status,
         annualDays: emp.annual_days, personalDays: emp.personal_days,
         expectedHours: emp.expected_hours, medicalHours: emp.medical_hours,
+        linked: !!emp.auth_user_id,
         monthHours: Math.round((monthCalc.totalMins/60)*100)/100,
         daysWorked: monthCalc.daysWorked, dailyHours: monthCalc.dailyHours,
         yearHours, dailyHoursYear: yearCalc.dailyHours
@@ -280,9 +358,10 @@ const API = {
     return {
       success: true, dashboard,
       employees: employees.map(e => ({
-        id: e.id, name: e.name, pin: e.pin, role: e.role, status: e.status,
+        id: e.id, name: e.name, email: e.email, role: e.role, status: e.status,
         annualDays: e.annual_days, personalDays: e.personal_days,
-        expectedHours: e.expected_hours, medicalHours: e.medical_hours
+        expectedHours: e.expected_hours, medicalHours: e.medical_hours,
+        linked: !!e.auth_user_id
       })),
       pendingRequests: (pendRes.data||[]).map(mapHol),
       approvedHolidays: (appRes.data||[]).map(mapHol),

@@ -7,9 +7,10 @@
 CREATE TABLE employees (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
-  pin TEXT NOT NULL UNIQUE,
+  email TEXT UNIQUE,
+  auth_user_id UUID UNIQUE REFERENCES auth.users(id) ON DELETE SET NULL,
   role TEXT NOT NULL DEFAULT 'employee' CHECK (role IN ('employee', 'admin')),
-  status TEXT NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive')),
+  status TEXT NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive', 'Pending')),
   annual_days INTEGER NOT NULL DEFAULT 30,
   personal_days INTEGER NOT NULL DEFAULT 2,
   expected_hours INTEGER NOT NULL DEFAULT 1791,
@@ -128,11 +129,11 @@ CREATE INDEX idx_holidays_employee ON holidays(employee_id);
 CREATE INDEX idx_holidays_status ON holidays(status);
 CREATE INDEX idx_audit_table_record ON audit_log(table_name, record_id);
 
--- 8. DEFAULT ADMIN (PIN: 0000)
--- expected_hours = 1791 per Convenio Colectivo Interprovincial
--- del Sector de la Industria de Hostelería y Turismo de Cataluña (Art. 28)
-INSERT INTO employees (name, pin, role, status, annual_days, personal_days, expected_hours, medical_hours)
-VALUES ('ADMIN', '0000', 'admin', 'Active', 30, 2, 1791, 20);
+-- 8. DEFAULT ADMIN — seed with the owner's Google email.
+-- Employees sign in with Google; an auth user is linked to this row on first sign-in
+-- via link_employee_by_email (defined in a later migration).
+INSERT INTO employees (name, email, role, status, annual_days, personal_days, expected_hours, medical_hours)
+VALUES ('ADMIN', 'admin@example.com', 'admin', 'Active', 30, 2, 1791, 20);
 
 -- 9. Helper function: calculate hours for a set of punches
 CREATE OR REPLACE FUNCTION calc_day_hours(emp_id UUID, d DATE)

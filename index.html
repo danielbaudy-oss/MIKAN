@@ -10,136 +10,152 @@
   <meta name="theme-color" content="#e9b595">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="logo.png">
-  <title>MIKAN - Clock In</title>
+  <title>MIKAN - Sign In</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;touch-action:manipulation}
-:root{--bg:#f1dfd3;--accent:#e9b595;--accent-dark:#d4956e;--text:#1a1a1a;--text-dim:#6b5c52;--radius:14px;--cream:#f3f3ee;--olive:#81916e}
-html,body{height:100%;width:100%;overflow:hidden}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
-.login-card{background:#fff;border-radius:24px;padding:40px 30px;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.08)}
+:root{--bg:#f1dfd3;--accent:#e9b595;--accent-dark:#d4956e;--text:#1a1a1a;--text-dim:#6b5c52;--radius:14px;--cream:#f3f3ee;--olive:#81916e;--border:#e0d0c4}
+html,body{height:100%;width:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;min-height:100vh}
+.card{background:#fff;border-radius:24px;padding:40px 32px;width:100%;max-width:400px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.08)}
 .logo{margin-bottom:8px}
 .logo img{width:80px;height:80px;object-fit:contain}
 .brand{font-size:32px;font-weight:800;color:var(--text);letter-spacing:4px;margin-bottom:4px}
-.subtitle{color:var(--text-dim);font-size:13px;margin-bottom:36px}
-.pin-label{color:var(--text-dim);font-size:12px;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px;font-weight:600}
-.pin-dots{display:flex;justify-content:center;gap:14px;margin-bottom:30px}
-.pin-dot{width:18px;height:18px;border-radius:50%;border:2px solid #d4c4b8;transition:all .2s}
-.pin-dot.filled{background:var(--accent-dark);border-color:var(--accent-dark);box-shadow:0 0 12px rgba(212,149,110,0.4)}
-.pin-dot.error{background:#ef4444;border-color:#ef4444;animation:shake .4s}
-.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:280px;margin:0 auto}
-.num-btn{height:64px;border:none;border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:24px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
-.num-btn:hover{background:var(--accent)}
-.num-btn:active{transform:scale(0.95);background:var(--accent-dark);color:#fff}
-.num-btn.action{background:transparent;font-size:18px;color:var(--text-dim)}
-.num-btn.action:hover{color:var(--text)}
-.num-btn.action:active{background:var(--bg)}
-.error-msg{color:#ef4444;font-size:13px;margin-top:20px;min-height:20px;font-weight:600}
-.loading-spinner{width:24px;height:24px;border:3px solid #d4c4b8;border-top-color:var(--accent-dark);border-radius:50%;animation:spin .6s linear infinite;margin:20px auto 0}
+.subtitle{color:var(--text-dim);font-size:13px;margin-bottom:32px;line-height:1.5}
+.google-btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;padding:14px 24px;background:#fff;border:2px solid var(--border);border-radius:var(--radius);font-size:15px;font-weight:600;color:var(--text);cursor:pointer;transition:all .2s;width:100%;max-width:320px;font-family:inherit}
+.google-btn:hover:not(:disabled){border-color:var(--accent-dark);background:var(--cream)}
+.google-btn:active{transform:scale(0.98)}
+.google-btn:disabled{opacity:.5;cursor:wait}
+.google-icon{width:22px;height:22px;flex-shrink:0}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent-dark);border-radius:50%;animation:spin .7s linear infinite;margin:16px auto}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.status-msg{color:var(--text-dim);font-size:13px;margin-top:12px;min-height:18px}
+.error-box{background:#fee2e2;border:1px solid #fecaca;border-radius:10px;padding:12px 14px;margin-top:20px;text-align:left;display:none}
+.error-box.show{display:block}
+.error-box h3{color:#991b1b;font-size:13px;margin-bottom:4px;font-weight:700}
+.error-box p{color:#7f1d1d;font-size:12px;line-height:1.4}
+.choice-btn{display:block;width:100%;padding:18px 20px;margin:10px 0;border:2px solid var(--border);border-radius:var(--radius);background:#fff;cursor:pointer;text-align:left;transition:all .2s;font-family:inherit}
+.choice-btn:hover{border-color:var(--accent-dark);background:var(--cream)}
+.choice-icon{font-size:28px;margin-bottom:6px}
+.choice-title{font-size:16px;font-weight:700;color:var(--text)}
+.choice-desc{font-size:12px;color:var(--text-dim);margin-top:2px}
+.hide{display:none}
 </style>
 </head>
 <body>
-  <div class="login-card">
-    <div class="logo"><img src="logo.png" alt="MIKAN"></div>
+  <div class="card">
+    <div class="logo"><img src="logo.png" alt="MIKAN" onerror="this.style.display='none'"></div>
     <div class="brand">MIKAN</div>
-    <div class="subtitle">Employee Time Clock</div>
-    <div class="pin-label">Enter your PIN</div>
-    <div class="pin-dots" id="pinDots">
-      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+
+    <!-- Initial sign-in -->
+    <div id="signInState">
+      <div class="subtitle">Sign in with your Google account to clock in.</div>
+      <button class="google-btn" id="signInBtn" onclick="doSignIn()">
+        <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        Continue with Google
+      </button>
     </div>
-    <div class="numpad" id="numpad">
-      <button class="num-btn" onclick="addDigit('1')">1</button>
-      <button class="num-btn" onclick="addDigit('2')">2</button>
-      <button class="num-btn" onclick="addDigit('3')">3</button>
-      <button class="num-btn" onclick="addDigit('4')">4</button>
-      <button class="num-btn" onclick="addDigit('5')">5</button>
-      <button class="num-btn" onclick="addDigit('6')">6</button>
-      <button class="num-btn" onclick="addDigit('7')">7</button>
-      <button class="num-btn" onclick="addDigit('8')">8</button>
-      <button class="num-btn" onclick="addDigit('9')">9</button>
-      <button class="num-btn action" onclick="clearPin()">✕</button>
-      <button class="num-btn" onclick="addDigit('0')">0</button>
-      <button class="num-btn action" onclick="backspace()">⌫</button>
+
+    <!-- Loading while verifying session / linking employee -->
+    <div id="loadingState" class="hide">
+      <div class="spinner"></div>
+      <div class="status-msg" id="loadingMsg">Checking your session…</div>
     </div>
-    <div class="error-msg" id="errorMsg"></div>
+
+    <!-- Role picker: admins can choose between the admin panel and the employee view -->
+    <div id="roleState" class="hide">
+      <div class="subtitle" id="welcomeMsg">Welcome back</div>
+      <button class="choice-btn" onclick="go('admin.html')">
+        <div class="choice-icon">📊</div>
+        <div class="choice-title">Admin Panel</div>
+        <div class="choice-desc">Manage hours, time off, employees</div>
+      </button>
+      <button class="choice-btn" onclick="go('employee.html')">
+        <div class="choice-icon">🕐</div>
+        <div class="choice-title">Employee Clock</div>
+        <div class="choice-desc">Clock in and out, request time off</div>
+      </button>
+    </div>
+
+    <!-- Error surface (unknown email, inactive, OAuth error) -->
+    <div class="error-box" id="errorBox">
+      <h3 id="errorTitle">Something went wrong</h3>
+      <p id="errorBody"></p>
+      <button class="google-btn" style="margin-top:12px" onclick="doSignOut()">Sign out and try again</button>
+    </div>
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-api.js"></script>
 <script>
-// Supabase config
-const SB_URL = 'https://kxbmlsbxnzvgzucxleoy.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4Ym1sc2J4bnp2Z3p1Y3hsZW95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzE3ODgsImV4cCI6MjA5MTI0Nzc4OH0.OrKHnYy0vElWI9bQ-xYlE2RXy1TU2FknBPafp--3jMY';
-const _sbClient = supabase.createClient(SB_URL, SB_KEY);
-
-let pin = '';
-let isLoading = false;
-
-function addDigit(d) {
-  if (isLoading || pin.length >= 4) return;
-  pin += d;
-  updateDots();
-  if (pin.length === 4) doLogin();
-}
-
-function backspace() {
-  if (isLoading) return;
-  pin = pin.slice(0, -1);
-  updateDots();
-  document.getElementById('errorMsg').textContent = '';
-}
-
-function clearPin() {
-  if (isLoading) return;
-  pin = '';
-  updateDots();
-  document.getElementById('errorMsg').textContent = '';
-}
-
-function updateDots() {
-  const dots = document.querySelectorAll('.pin-dot');
-  dots.forEach((dot, i) => {
-    dot.classList.toggle('filled', i < pin.length);
-    dot.classList.remove('error');
-  });
-}
-
-async function doLogin() {
-  isLoading = true;
-  document.getElementById('errorMsg').innerHTML = '<div class="loading-spinner"></div>';
-  
-  try {
-    const { data: rows, error } = await _sbClient.from('employees').select('id,name,role,pin').eq('pin', pin).eq('status', 'Active');
-    if (error) throw error;
-    
-    if (rows.length) {
-      sessionStorage.setItem('mikan_user', JSON.stringify(rows[0]));
-      if (rows[0].role === 'admin') window.location.href = 'admin.html';
-      else window.location.href = 'employee.html';
-    } else {
-      showError('Invalid PIN');
-    }
-  } catch (err) {
-    showError('Connection error. Try again.');
+const $ = id => document.getElementById(id);
+function show(id){['signInState','loadingState','roleState','errorBox'].forEach(s=>$(s).classList.toggle('hide',s!==id));if(id==='errorBox')$('errorBox').classList.add('show');}
+function go(page){window.location.href=page;}
+async function doSignIn(){
+  $('signInBtn').disabled=true;
+  try{await signInWithGoogle();}
+  catch(e){
+    $('signInBtn').disabled=false;
+    showError('Sign-in failed',e.message||'Could not start the Google sign-in flow.');
   }
-  
-  isLoading = false;
+}
+async function doSignOut(){await signOut();}
+function showError(title,body){
+  $('errorTitle').textContent=title;
+  $('errorBody').textContent=body;
+  show('errorBox');
 }
 
-function showError(msg) {
-  document.getElementById('errorMsg').textContent = msg;
-  document.querySelectorAll('.pin-dot').forEach(d => d.classList.add('error'));
-  setTimeout(() => { pin = ''; updateDots(); }, 600);
-}
-
-window.onload = () => {
-  const user = sessionStorage.getItem('mikan_user');
-  if (user) {
-    const u = JSON.parse(user);
-    if (u.role === 'admin') window.location.href = 'admin.html';
-    else window.location.href = 'employee.html';
+async function init(){
+  // Check for OAuth errors returned in the URL (e.g. access_denied)
+  const url = new URL(window.location.href);
+  const params = new URLSearchParams(url.hash.substring(1) || url.search);
+  const oauthErr = params.get('error');
+  if (oauthErr) {
+    showError('Sign-in error', params.get('error_description') || oauthErr);
+    return;
   }
-};
+
+  const session = await getSession();
+  if (!session) { show('signInState'); return; }
+
+  show('loadingState');
+  $('loadingMsg').textContent = 'Linking your account…';
+  const emp = await getCurrentEmployee();
+
+  if (!emp) {
+    await (await getSB()).auth.signOut();
+    showError(
+      'Account not recognised',
+      'This Google account is not registered with MIKAN. Ask the manager to add you.'
+    );
+    return;
+  }
+  if (emp.status === 'Inactive') {
+    showError('Account disabled', 'Your MIKAN account has been deactivated. Contact the manager.');
+    return;
+  }
+  if (emp.status === 'Pending') {
+    showError('Account pending', 'Your account is pending activation. Contact the manager.');
+    return;
+  }
+
+  // Stash a lightweight copy for the other pages (keeps the existing pages
+  // working without a round-trip on every load; they still verify via auth).
+  sessionStorage.setItem('mikan_user', JSON.stringify(emp));
+
+  if (emp.role === 'admin') {
+    $('welcomeMsg').textContent = `👋 Welcome, ${emp.name}`;
+    show('roleState');
+  } else {
+    go('employee.html');
+  }
+}
+init();
 </script>
 </body>
 </html>

@@ -147,10 +147,17 @@ tbody tr{transition:all .15s}tbody tr:hover{background:rgba(233,181,149,0.2)}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-api.js"></script>
 <script>
-const U=JSON.parse(sessionStorage.getItem('mikan_user')||'null');
-if(!U||U.role!=='admin')window.location.href='index.html';
-else document.getElementById('adminName').textContent=U.name;
+// Auth-gated bootstrap: require an active admin session, otherwise bounce home.
+let U = null;
 const $=id=>document.getElementById(id);
+async function bootstrapAuth(){
+  U = await requireAuth(['admin']);
+  if (!U) return false;
+  sessionStorage.setItem('mikan_user', JSON.stringify(U));
+  $('adminName').textContent = U.name;
+  return true;
+}
+function logout(){sessionStorage.removeItem('mikan_user');signOut();}
 const toast=(m,t='')=>{const e=$('toast');e.textContent=m;e.className=`toast ${t} show`;setTimeout(()=>e.classList.remove('show'),3000)};
 const HT={Annual:'Vacation',Personal:'Personal',Medical:'Sick Leave',MedAppt:'Med. Visit'};
 async function api(d){
@@ -170,7 +177,7 @@ async function api(d){
   if(a==='deletePunch') return API.deletePunch(d.punchId,d.reason);
   throw new Error('Unknown action: '+a);
 }
-function logout(){sessionStorage.removeItem('mikan_user');window.location.href='index.html';}
+function oldLogoutStub(){} // (logout is defined above, kept here only to avoid undefined-reference)
 
 const S={sec:'hours',yr:new Date().getFullYear(),mo:new Date().getMonth()+1,emps:[],dash:[],pending:[],closures:[],paidHrs:[],loaded:false,mk:'',search:'',selEmp:null,calDate:null,empPunched:{}};
 
@@ -612,18 +619,25 @@ function renderArchive(m){
 }
 
 // ===== EMPLOYEE MANAGEMENT =====
-function addEmp(){openModal('➕ Add Employee',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Name *</label><input type="text" id="nN" class="fi" placeholder="JOHN"></div><div class="fg"><label class="fl">PIN</label><input type="text" id="nP" class="fi" placeholder="Auto" maxlength="4"></div><div class="fg"><label class="fl">Role</label><select id="nR" class="fs"><option value="employee">Employee</option><option value="admin">Admin</option></select></div><div class="fg"><label class="fl">Annual Hours</label><input type="number" id="nH" class="fi" value="1791"></div><div class="fg"><label class="fl">Vacation</label><input type="number" id="nA" class="fi" value="30"></div><div class="fg"><label class="fl">Personal</label><input type="number" id="nPD" class="fi" value="2"></div></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveAdd()">➕ Add</button></div>`);}
-async function saveAdd(){const n=$('nN').value.trim();if(!n)return toast('Name required','error');const btn=document.querySelector('#mBody .btn-save');btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'addEmployee',name:n,pin:$('nP').value||'',role:$('nR').value,annualDays:$('nA').value,personalDays:$('nPD').value,expectedHours:$('nH').value});if(r.success){
-  // Add to local state immediately
-  const newEmp={id:r.id,name:n.toUpperCase(),pin:r.pin||$('nP').value,role:$('nR').value,status:'Active',annualDays:Number($('nA').value),personalDays:Number($('nPD').value),expectedHours:Number($('nH').value),medicalHours:20};
-  S.emps.push(newEmp);S.dash.push({...newEmp,monthHours:0,daysWorked:0,dailyHours:{}});
+function addEmp(){openModal('➕ Add Employee',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Name *</label><input type="text" id="nN" class="fi" placeholder="JOHN"></div><div class="fg"><label class="fl">Email (Google)</label><input type="email" id="nE" class="fi" placeholder="person@gmail.com"></div><div class="fg"><label class="fl">Role</label><select id="nR" class="fs"><option value="employee">Employee</option><option value="admin">Admin</option></select></div><div class="fg"><label class="fl">Annual Hours</label><input type="number" id="nH" class="fi" value="1791"></div><div class="fg"><label class="fl">Vacation</label><input type="number" id="nA" class="fi" value="30"></div><div class="fg"><label class="fl">Personal</label><input type="number" id="nPD" class="fi" value="2"></div></div><p style="color:var(--text-dim);font-size:11px;margin-top:8px">Use the Gmail address the employee will sign in with. Leave blank to add them later.</p><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveAdd()">➕ Add</button></div>`);}
+async function saveAdd(){const n=$('nN').value.trim();if(!n)return toast('Name required','error');const btn=document.querySelector('#mBody .btn-save');btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'addEmployee',name:n,email:$('nE').value||'',role:$('nR').value,annualDays:$('nA').value,personalDays:$('nPD').value,expectedHours:$('nH').value});if(r.success){
+  const email=$('nE').value.toLowerCase().trim()||null;
+  const newEmp={id:r.id,name:n.toUpperCase(),email,role:$('nR').value,status:email?'Active':'Pending',annualDays:Number($('nA').value),personalDays:Number($('nPD').value),expectedHours:Number($('nH').value),medicalHours:20,linked:false};
+  S.emps.push(newEmp);S.dash.push({...newEmp,monthHours:0,daysWorked:0,dailyHours:{},yearHours:0,dailyHoursYear:{}});
   toast(r.message,'success');closeModal();renderEmpTable();
 }else{toast(r.message,'error');btn.disabled=false;btn.textContent='➕ Add';}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='➕ Add';}}
 
-function editEmp(id){const e=S.emps.find(x=>x.id===id);if(!e)return;openModal('✏️ Edit Employee',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Name</label><input type="text" id="eN" class="fi" value="${e.name}"></div><div class="fg"><label class="fl">PIN</label><input type="text" id="eP" class="fi" value="${e.pin}" maxlength="4"></div><div class="fg"><label class="fl">Role</label><select id="eR" class="fs"><option value="employee" ${e.role==='employee'?'selected':''}>Employee</option><option value="admin" ${e.role==='admin'?'selected':''}>Admin</option></select></div><div class="fg"><label class="fl">Status</label><select id="eS" class="fs"><option value="Active" ${e.status==='Active'?'selected':''}>Active</option><option value="Inactive" ${e.status==='Inactive'?'selected':''}>Inactive</option></select></div><div class="fg"><label class="fl">Vacation</label><input type="number" id="eA" class="fi" value="${e.annualDays}"></div><div class="fg"><label class="fl">Personal</label><input type="number" id="ePD" class="fi" value="${e.personalDays}"></div><div class="fg"><label class="fl">Annual Hours</label><input type="number" id="eH" class="fi" value="${e.expectedHours}"></div><div class="fg"><label class="fl">Medical Hours</label><input type="number" id="eMH" class="fi" value="${e.medicalHours||20}"></div></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveEdit('${id}')">💾 Save</button></div>`);}
-async function saveEdit(id){const btn=document.querySelector('#mBody .btn-save');btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'editEmployee',id,name:$('eN').value,pin:$('eP').value,role:$('eR').value,status:$('eS').value,annualDays:$('eA').value,personalDays:$('ePD').value,expectedHours:$('eH').value,medicalHours:$('eMH').value});if(r.success){
-  // Update state locally
-  const i=S.emps.findIndex(x=>x.id===id);if(i>-1){S.emps[i]={...S.emps[i],name:$('eN').value.toUpperCase(),pin:$('eP').value,role:$('eR').value,status:$('eS').value,annualDays:Number($('eA').value),personalDays:Number($('ePD').value),expectedHours:Number($('eH').value),medicalHours:Number($('eMH').value)};}
+function editEmp(id){const e=S.emps.find(x=>x.id===id);if(!e)return;openModal('✏️ Edit Employee',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Name</label><input type="text" id="eN" class="fi" value="${e.name}"></div><div class="fg"><label class="fl">Email (Google)</label><input type="email" id="eE" class="fi" value="${e.email||''}" placeholder="person@gmail.com"></div><div class="fg"><label class="fl">Role</label><select id="eR" class="fs"><option value="employee" ${e.role==='employee'?'selected':''}>Employee</option><option value="admin" ${e.role==='admin'?'selected':''}>Admin</option></select></div><div class="fg"><label class="fl">Status</label><select id="eS" class="fs"><option value="Active" ${e.status==='Active'?'selected':''}>Active</option><option value="Pending" ${e.status==='Pending'?'selected':''}>Pending</option><option value="Inactive" ${e.status==='Inactive'?'selected':''}>Inactive</option></select></div><div class="fg"><label class="fl">Vacation</label><input type="number" id="eA" class="fi" value="${e.annualDays}"></div><div class="fg"><label class="fl">Personal</label><input type="number" id="ePD" class="fi" value="${e.personalDays}"></div><div class="fg"><label class="fl">Annual Hours</label><input type="number" id="eH" class="fi" value="${e.expectedHours}"></div><div class="fg"><label class="fl">Medical Hours</label><input type="number" id="eMH" class="fi" value="${e.medicalHours||20}"></div></div>
+  <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+    <div>
+      <div style="font-size:12px;font-weight:600">🔗 Google link</div>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:2px">${e.linked?'Linked — employee has signed in':'Not linked yet'}</div>
+    </div>
+    <span class="badge badge-${e.linked?'good':'warn'}">${e.linked?'Linked':'Pending first sign-in'}</span>
+  </div>
+  <div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveEdit('${id}')">💾 Save</button></div>`);}
+async function saveEdit(id){const btn=document.querySelector('#mBody .btn-save');btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'editEmployee',id,name:$('eN').value,email:$('eE').value,role:$('eR').value,status:$('eS').value,annualDays:$('eA').value,personalDays:$('ePD').value,expectedHours:$('eH').value,medicalHours:$('eMH').value});if(r.success){
+  const i=S.emps.findIndex(x=>x.id===id);if(i>-1){S.emps[i]={...S.emps[i],name:$('eN').value.toUpperCase(),email:$('eE').value.toLowerCase().trim()||null,role:$('eR').value,status:$('eS').value,annualDays:Number($('eA').value),personalDays:Number($('ePD').value),expectedHours:Number($('eH').value),medicalHours:Number($('eMH').value)};}
   const di=S.dash.findIndex(x=>x.id===id);if(di>-1){S.dash[di]={...S.dash[di],name:$('eN').value.toUpperCase(),role:$('eR').value};}
   toast('Updated','success');closeModal();renderEmpTable();
 }else{toast(r.message,'error');btn.disabled=false;btn.textContent='💾 Save';}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='💾 Save';}}
@@ -678,5 +692,5 @@ async function exportAuditReport(){
 }
 
 // ===== INIT =====
-window.onload=async()=>{if(!U)return;if(U.pin==='0000')$('devSwitcher').style.display='block';$('mainContent').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';await loadAll();render();};
+window.onload=async()=>{const ok=await bootstrapAuth();if(!ok)return;if(U.role==='admin')$('devSwitcher').style.display='block';$('mainContent').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';await loadAll();render();};
 </script>

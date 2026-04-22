@@ -276,7 +276,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <div class="toast" id="toast"></div>
 
-<!-- Dev role switcher (only for PIN 0000) -->
+<!-- Dev role switcher — shown when an admin logs into the employee view -->
 <div id="devSwitcher" style="display:none;position:fixed;bottom:16px;right:16px;z-index:999">
   <button onclick="switchToAdmin()" style="padding:8px 14px;border:none;border-radius:8px;background:var(--accent-dark);color:#fff;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.2)">→ Admin</button>
 </div>
@@ -285,10 +285,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <script src="supabase-api.js"></script>
 <script>
 
-// Auth check
-const USER = JSON.parse(sessionStorage.getItem('mikan_user') || 'null');
-if (!USER) window.location.href = 'index.html';
-else document.getElementById('userName').textContent = USER.name;
+// Auth check — require an active employee session via Google OAuth.
+let USER = null;
+async function bootstrapAuth(){
+  USER = await requireAuth();
+  if (!USER) return false;
+  sessionStorage.setItem('mikan_user', JSON.stringify(USER));
+  document.getElementById('userName').textContent = USER.name;
+  return true;
+}
 
 const HOLIDAY_TYPES = {
   Annual: { name: 'Vacation', emoji: '🏖️' },
@@ -342,7 +347,7 @@ async function apiPost(data) {
 
 function logout() {
   sessionStorage.removeItem('mikan_user');
-  window.location.href = 'index.html';
+  signOut();
 }
 function switchToAdmin() {
   window.location.href = 'admin.html';
@@ -845,10 +850,11 @@ async function submitHoliday() {
 }
 
 // Init
-window.onload = () => {
-  if (!USER) return;
-  // Show dev switcher for admin PIN
-  if (USER.pin === '0000') $('devSwitcher').style.display = 'block';
+window.onload = async () => {
+  const ok = await bootstrapAuth();
+  if (!ok) return;
+  // Show dev role switcher when an admin is viewing the employee dashboard
+  if (USER.role === 'admin') $('devSwitcher').style.display = 'block';
   // Load closures
   apiPost({ action:'getClosures' }).then(r => {
     if(r.success)(r.closures||[]).forEach(c=>{
