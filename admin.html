@@ -344,7 +344,6 @@ async function renderFreezeTab(){
     h+=`<div class="fg" style="max-width:240px"><label class="fl">Freeze through date</label><input type="date" id="freezeDateInput" class="fi" value="${defaultVal}" max="${yesterdayStr}"></div>`;
     h+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">`;
     h+=`<button class="btn btn-danger" onclick="doFreeze()" id="freezeBtn">🔒 ${isFrozen?'Update freeze date':'Freeze'}</button>`;
-    h+=`<button class="btn btn-primary" onclick="freezeYesterday()" style="background:var(--bg);color:var(--text-dim);border:1px solid var(--border)">↷ Yesterday</button>`;
     if(isFrozen)h+=`<button class="btn btn-primary" onclick="doUnfreeze()" id="unfreezeBtn" style="background:var(--success)">🔓 Unfreeze all</button>`;
     h+=`</div></div></div>`;
     el.innerHTML=h;
@@ -365,14 +364,6 @@ async function doFreeze(){
   const btn=$('freezeBtn');btn.disabled=true;btn.textContent='⏳';
   try{await API.setFreezeDate(ds);toast(`Frozen through ${ds}`,'success');renderFreezeTab();}
   catch(e){toast('Error','error');btn.disabled=false;btn.textContent='🔒 Freeze';}
-}
-// Quick-pick: freeze straight through yesterday without the date input dance.
-async function freezeYesterday(){
-  const y=new Date();y.setDate(y.getDate()-1);
-  const ds=`${y.getFullYear()}-${String(y.getMonth()+1).padStart(2,'0')}-${String(y.getDate()).padStart(2,'0')}`;
-  const inp=$('freezeDateInput');if(inp)inp.value=ds;
-  try{await API.setFreezeDate(ds);toast(`Frozen through ${ds}`,'success');renderFreezeTab();}
-  catch(e){toast('Error','error');}
 }
 async function doUnfreeze(){const btn=$('unfreezeBtn');btn.disabled=true;btn.textContent='⏳';try{await API.setFreezeDate('');toast('Unfrozen','success');renderFreezeTab();}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='🔓 Unfreeze';}}
 // Employee Calendar Modal
