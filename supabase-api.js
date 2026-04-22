@@ -165,7 +165,7 @@ const API = {
     const { data, error } = await (await getSB()).from('employees').insert({
       name, pin, role: params.role||'employee',
       annual_days: params.annualDays||30, personal_days: params.personalDays||2,
-      expected_hours: params.expectedHours||1776, medical_hours: params.medicalHours||20
+      expected_hours: params.expectedHours||1791, medical_hours: params.medicalHours||20
     }).select();
     if (error) throw error;
     return { success: true, id: data[0].id, pin, message: `Employee ${name} added with PIN: ${pin}` };
@@ -213,11 +213,14 @@ const API = {
     const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
     const lastDay = new Date(year, month, 0).getDate();
     const endDate = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+    const yearStart = `${year}-01-01`;
+    const yearEnd = `${year}-12-31`;
 
     const sb = await getSB();
-    const [empRes, punchRes, pendRes, appRes, cloRes] = await Promise.all([
+    const [empRes, punchRes, yearPunchRes, pendRes, appRes, cloRes] = await Promise.all([
       sb.from('employees').select('*').order('name'),
       sb.from('punches').select('employee_id,punch_date,punch_time,punch_type').gte('punch_date', startDate).lte('punch_date', endDate).eq('is_deleted', false).order('punch_time'),
+      sb.from('punches').select('employee_id,punch_date,punch_time,punch_type').gte('punch_date', yearStart).lte('punch_date', yearEnd).eq('is_deleted', false).order('punch_time'),
       sb.from('holidays').select('*').eq('status', 'Pending').order('created_at', { ascending: false }),
       sb.from('holidays').select('*').eq('status', 'Approved').order('created_at', { ascending: false }),
       sb.from('closures').select('*').order('start_date')
@@ -225,14 +228,15 @@ const API = {
 
     const employees = empRes.data || [];
     const allPunches = punchRes.data || [];
+    const allYearPunches = yearPunchRes.data || [];
     const activeEmps = employees.filter(e => e.status === 'Active');
 
-    const dashboard = activeEmps.map(emp => {
-      const empPunches = allPunches.filter(p => p.employee_id === emp.id);
+    // Hours calc helper — pairs sorted IN/OUT punches and sums minutes
+    const calcMins = (punches) => {
       const dayMap = {};
-      empPunches.forEach(p => { if (!dayMap[p.punch_date]) dayMap[p.punch_date] = []; dayMap[p.punch_date].push(p); });
-      const dailyHours = {};
+      punches.forEach(p => { if (!dayMap[p.punch_date]) dayMap[p.punch_date] = []; dayMap[p.punch_date].push(p); });
       let totalMins = 0;
+      const dailyHours = {};
       Object.entries(dayMap).forEach(([date, dps]) => {
         const sorted = dps.sort((a, b) => a.punch_time.localeCompare(b.punch_time));
         let dayMins = 0;
@@ -247,12 +251,33 @@ const API = {
         dailyHours[date] = Math.round((dayMins/60)*100)/100;
         totalMins += dayMins;
       });
+      return { totalMins, dailyHours, daysWorked: Object.keys(dayMap).length };
+    };
+
+    // Prorated expected hours up to today (for on-track calc)
+    // Based on convenio: 1791h/year ÷ 365 days × elapsed days
+    const now = new Date();
+    const yearStartDate = new Date(year, 0, 1);
+    const yearEndDate = new Date(year, 11, 31);
+    const today = (now.getFullYear() === year) ? now : (now > yearEndDate ? yearEndDate : yearStartDate);
+    const daysElapsed = Math.max(1, Math.round((today - yearStartDate) / 86400000) + 1);
+    const daysInYear = ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) ? 366 : 365;
+    const yearProgress = daysElapsed / daysInYear;
+
+    const dashboard = activeEmps.map(emp => {
+      const monthCalc = calcMins(allPunches.filter(p => p.employee_id === emp.id));
+      const yearCalc = calcMins(allYearPunches.filter(p => p.employee_id === emp.id));
+      const yearHours = Math.round((yearCalc.totalMins/60)*100)/100;
+      const expectedToDate = Math.round(emp.expected_hours * yearProgress * 100) / 100;
+      const overtimeHours = Math.max(0, Math.round((yearHours - expectedToDate) * 100) / 100);
+      const yearProgressPct = expectedToDate > 0 ? Math.round((yearHours / expectedToDate) * 1000) / 10 : 0;
       return {
         id: emp.id, name: emp.name, role: emp.role, pin: emp.pin, status: emp.status,
         annualDays: emp.annual_days, personalDays: emp.personal_days,
         expectedHours: emp.expected_hours, medicalHours: emp.medical_hours,
-        monthHours: Math.round((totalMins/60)*100)/100,
-        daysWorked: Object.keys(dayMap).length, dailyHours
+        monthHours: Math.round((monthCalc.totalMins/60)*100)/100,
+        daysWorked: monthCalc.daysWorked, dailyHours: monthCalc.dailyHours,
+        yearHours, expectedToDate, overtimeHours, yearProgressPct
       };
     });
 

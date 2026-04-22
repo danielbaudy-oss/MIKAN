@@ -12,7 +12,7 @@ CREATE TABLE employees (
   status TEXT NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive')),
   annual_days INTEGER NOT NULL DEFAULT 30,
   personal_days INTEGER NOT NULL DEFAULT 2,
-  expected_hours INTEGER NOT NULL DEFAULT 1776,
+  expected_hours INTEGER NOT NULL DEFAULT 1791,
   medical_hours INTEGER NOT NULL DEFAULT 20,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -129,8 +129,10 @@ CREATE INDEX idx_holidays_status ON holidays(status);
 CREATE INDEX idx_audit_table_record ON audit_log(table_name, record_id);
 
 -- 8. DEFAULT ADMIN (PIN: 0000)
+-- expected_hours = 1791 per Convenio Colectivo Interprovincial
+-- del Sector de la Industria de Hostelería y Turismo de Cataluña (Art. 28)
 INSERT INTO employees (name, pin, role, status, annual_days, personal_days, expected_hours, medical_hours)
-VALUES ('ADMIN', '0000', 'admin', 'Active', 30, 2, 1776, 20);
+VALUES ('ADMIN', '0000', 'admin', 'Active', 30, 2, 1791, 20);
 
 -- 9. Helper function: calculate hours for a set of punches
 CREATE OR REPLACE FUNCTION calc_day_hours(emp_id UUID, d DATE)

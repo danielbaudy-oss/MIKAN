@@ -41,8 +41,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tab-content{display:none}.tab-content.active{display:block}
 /* Stats */
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stats-grid-5{grid-template-columns:repeat(5,1fr)}
 .stat-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 2px 6px rgba(0,0,0,0.03)}
 .stat-icon{font-size:24px;margin-bottom:8px}.stat-value{font-size:24px;font-weight:700}.stat-label{font-size:11px;color:var(--text-dim);margin-top:2px}
+/* YTD progress bar (per-employee row) */
+.ytd-cell{min-width:130px}
+.ytd-bar{height:6px;background:var(--bg);border-radius:4px;overflow:hidden;margin-top:4px}
+.ytd-bar-fill{height:100%;background:var(--olive);border-radius:4px;transition:width .3s}
+.ytd-bar-fill.behind{background:#f59e0b}
+.ytd-bar-fill.over{background:var(--accent-dark)}
+.ytd-label{font-size:10px;color:var(--text-dim);display:flex;justify-content:space-between}
 /* Card & Table */
 .card{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:14px;box-shadow:0 2px 6px rgba(0,0,0,0.03)}
 .card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
@@ -134,7 +142,8 @@ tbody tr{transition:all .15s}tbody tr:hover{background:rgba(233,181,149,0.2)}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);padding:10px 20px;border-radius:var(--radius);font-weight:600;font-size:12px;z-index:2000;opacity:0;transition:all .3s;color:#fff}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.toast.success{background:var(--olive)}.toast.error{background:var(--danger)}
 .mobile-menu-btn{display:none;position:fixed;top:16px;left:16px;width:44px;height:44px;border-radius:var(--radius);border:none;background:var(--accent-dark);color:#fff;font-size:20px;cursor:pointer;z-index:200;align-items:center;justify-content:center}
-@media(max-width:768px){.sidebar{transform:translateX(-100%);transition:transform .3s}.sidebar.open{transform:translateX(0)}.mobile-menu-btn{display:flex}.main{margin-left:0;padding:14px;padding-top:70px}.stats-grid{grid-template-columns:repeat(2,1fr)}table{display:block;overflow-x:auto}.cal-cell{font-size:11px}}
+@media(max-width:1100px){.stats-grid-5{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:768px){.sidebar{transform:translateX(-100%);transition:transform .3s}.sidebar.open{transform:translateX(0)}.mobile-menu-btn{display:flex}.main{margin-left:0;padding:14px;padding-top:70px}.stats-grid,.stats-grid-5{grid-template-columns:repeat(2,1fr)}table{display:block;overflow-x:auto}.cal-cell{font-size:11px}}
 </style>
 <div class="modal-bg" id="modalBg"><div class="modal" id="modal"><div class="modal-hd"><h2 id="mTitle"></h2><button class="modal-x" onclick="closeModal()">✕</button></div><div class="modal-bd" id="mBody"></div></div></div>
 <div class="toast" id="toast"></div>
@@ -187,14 +196,16 @@ async function chgMo(d){const n=new Date();if(d>0&&S.yr===n.getFullYear()&&S.mo=
   const mDisp=document.querySelector('.month-lbl');if(mDisp){const nd=new Date(S.yr,S.mo-1),nc=new Date(),ic=S.yr===nc.getFullYear()&&S.mo===nc.getMonth()+1;mDisp.innerHTML=nd.toLocaleDateString('en-US',{month:'long',year:'numeric'})+(ic?'<span class="month-cur">NOW</span>':'');}
   const nextBtn=document.querySelector('.month-btn:last-child');if(nextBtn){const nc=new Date();nextBtn.disabled=S.yr===nc.getFullYear()&&S.mo===nc.getMonth()+1;}
   // Show spinner only in the table body, keep rest of page intact
-  const empTab=$('empTab');if(empTab){const tbody=empTab.querySelector('tbody');if(tbody)tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:20px"><div class="spinner" style="margin:0 auto;width:28px;height:28px"></div></td></tr>`;}
+  const empTab=$('empTab');if(empTab){const tbody=empTab.querySelector('tbody');if(tbody)tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:20px"><div class="spinner" style="margin:0 auto;width:28px;height:28px"></div></td></tr>`;}
   await loadAll(true);
   // Just re-render the table and stats, not the whole page
   renderEmpTable();
-  // Update stats cards
-  const r=S.dash,te=r.length,th=S.viewMode==='weekly'?0:r.reduce((s,e)=>s+e.monthHours,0),ah=te?th/te:0;
+  // Update stats cards (5 cards: Employees, Period, Year, On Track, Pending)
+  const r=S.dash,te=r.length,th=S.viewMode==='weekly'?0:r.reduce((s,e)=>s+e.monthHours,0);
+  const yh=r.reduce((s,e)=>s+(e.yearHours||0),0);
+  const onTrack=r.filter(e=>(e.yearProgressPct||0)>=95).length;
   const cards=document.querySelectorAll('.stat-card .stat-value');
-  if(cards.length>=4){cards[0].textContent=te;cards[1].textContent=th.toFixed(1)+'h';cards[2].textContent=ah.toFixed(1)+'h';cards[3].textContent=S.pending.length;}
+  if(cards.length>=5){cards[0].textContent=te;cards[1].textContent=th.toFixed(1)+'h';cards[2].textContent=yh.toFixed(0)+'h';cards[3].textContent=`${onTrack}/${te}`;cards[4].textContent=S.pending.length;}
 }
 async function refresh(){$('mainContent').innerHTML='<div class="loading"><div class="spinner"></div><p>Refreshing...</p></div>';await loadAll(true);render();}
 </script>
@@ -208,14 +219,17 @@ if(!S.hrActiveTab)S.hrActiveTab='empTab';
 function renderHours(m){
   const r=S.dash,te=r.length;
   // Calculate totals based on view mode
-  let th,ah;
+  let th;
   if(S.viewMode==='weekly'){
     const w=getWeekRange(S.weekOff);const ws=w.start.toISOString().slice(0,10),we=w.end.toISOString().slice(0,10);
     th=r.reduce((s,e)=>{const dh=e.dailyHours||{};let wh=0;Object.entries(dh).forEach(([d,h])=>{if(d>=ws&&d<=we)wh+=h;});return s+wh;},0);
   }else{th=r.reduce((s,e)=>s+e.monthHours,0);}
-  ah=te?th/te:0;
+  // Year-to-date totals and on-track count (>= 95% of prorated expected)
+  const yh=r.reduce((s,e)=>s+(e.yearHours||0),0);
+  const onTrack=r.filter(e=>(e.yearProgressPct||0)>=95).length;
+  const periodLbl=S.viewMode==='weekly'?'Week Hours':'Month Hours';
   let h=`<div class="page-header"><div><div class="page-title">📊 Employee Hours</div></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-primary" onclick="exportCSV()">📥 Export</button><button class="btn btn-primary" onclick="exportAuditReport()">🔍 Audit</button><button class="btn btn-primary" onclick="refresh()">🔄</button></div></div>`;
-  h+=`<div class="stats-grid"><div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">${te}</div><div class="stat-label">Employees</div></div><div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-value">${th.toFixed(1)}h</div><div class="stat-label">Total Hours</div></div><div class="stat-card"><div class="stat-icon">📊</div><div class="stat-value">${ah.toFixed(1)}h</div><div class="stat-label">Avg Hours</div></div><div class="stat-card"><div class="stat-icon">📋</div><div class="stat-value">${S.pending.length}</div><div class="stat-label">Pending</div></div></div>`;
+  h+=`<div class="stats-grid stats-grid-5"><div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">${te}</div><div class="stat-label">Employees</div></div><div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-value">${th.toFixed(1)}h</div><div class="stat-label">${periodLbl}</div></div><div class="stat-card"><div class="stat-icon">�</div><div class="stat-value">${yh.toFixed(0)}h</div><div class="stat-label">Year Hours</div></div><div class="stat-card"><div class="stat-icon">🎯</div><div class="stat-value">${onTrack}/${te}</div><div class="stat-label">On Track</div></div><div class="stat-card"><div class="stat-icon">📋</div><div class="stat-value">${S.pending.length}</div><div class="stat-label">Pending</div></div></div>`;
   // Tabs row with view toggle + date selector
   h+=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">`;
   h+=`<div class="tabs" id="hrTabs" style="margin-bottom:0;flex:1"><button class="tab ${S.hrActiveTab==='empTab'?'active':''}" onclick="hrTab('empTab')">👥 Employees</button><button class="tab ${S.hrActiveTab==='paidTab'?'active':''}" onclick="hrTab('paidTab')">💰 Paid Hours</button><button class="tab ${S.hrActiveTab==='freezeTab'?'active':''}" onclick="hrTab('freezeTab')">🔒 Freeze</button></div>`;
@@ -251,8 +265,23 @@ function renderEmpTable(){
     displayData=S.dash.map(e=>({...e,dispHours:e.monthHours,dispDays:e.daysWorked}));
   }
   const filtered=displayData.filter(e=>!S.search||e.name.toLowerCase().includes(S.search));
-  let h=`<div class="card"><div class="card-header"><div style="display:flex;align-items:center;gap:8px"><span class="card-title">👥 All Employees</span><button class="btn btn-add" onclick="addEmp()" style="padding:5px 12px;font-size:12px">➕ Add</button></div><input type="text" class="search-input" placeholder="🔍 Search..." value="${S.search||''}" oninput="S.search=this.value.toLowerCase();renderEmpTable()"></div><table><thead><tr><th>Employee</th><th>Role</th><th>Days</th><th>Hours</th><th style="width:40px"></th></tr></thead><tbody>`;
-  filtered.forEach(e=>{const hrs=e.dispHours;const cls=S.viewMode==='weekly'?(hrs>=40?'good':hrs>=20?'warn':'bad'):(hrs>=150?'good':hrs>=100?'warn':'bad');h+=`<tr onclick="editEmp('${e.id}')" style="cursor:pointer"><td class="emp-name">${e.name}</td><td><span class="emp-role">${e.role}</span></td><td>${e.dispDays}</td><td><span class="badge badge-${cls}">${hrs.toFixed(1)}h</span></td><td><button class="btn-sm" onclick="event.stopPropagation();openEmpCal('${e.id}','${e.name}')" style="background:#3b82f6;color:#fff" title="Calendar">📅</button></td></tr>`;});
+  let h=`<div class="card"><div class="card-header"><div style="display:flex;align-items:center;gap:8px"><span class="card-title">👥 All Employees</span><button class="btn btn-add" onclick="addEmp()" style="padding:5px 12px;font-size:12px">➕ Add</button></div><input type="text" class="search-input" placeholder="🔍 Search..." value="${S.search||''}" oninput="S.search=this.value.toLowerCase();renderEmpTable()"></div><table><thead><tr><th>Employee</th><th>Role</th><th>Days</th><th>${S.viewMode==='weekly'?'Week':'Month'} Hours</th><th class="ytd-cell">Year Progress</th><th>Overtime</th><th style="width:40px"></th></tr></thead><tbody>`;
+  filtered.forEach(e=>{
+    const hrs=e.dispHours;
+    const cls=S.viewMode==='weekly'?(hrs>=40?'good':hrs>=20?'warn':'bad'):(hrs>=150?'good':hrs>=100?'warn':'bad');
+    const yh=e.yearHours||0,ex=e.expectedToDate||0,pct=e.yearProgressPct||0;
+    // Progress bar: cap fill visually at 120% so going over is visible but not blown out
+    const fillW=Math.min(120,Math.max(0,pct));
+    const fillCls=pct>=105?'over':(pct>=95?'':'behind');
+    const ot=e.overtimeHours||0;
+    // Convenio caps OT at 80h/year. Warn at 60h, danger at 80h+
+    const otCls=ot>=80?'bad':(ot>=60?'warn':'good');
+    const otLbl=ot>0?`${ot.toFixed(0)}h`:'—';
+    const ytdCell=ex>0
+      ? `<div class="ytd-label"><span>${yh.toFixed(0)}h</span><span>${pct.toFixed(0)}%</span></div><div class="ytd-bar"><div class="ytd-bar-fill ${fillCls}" style="width:${fillW}%"></div></div><div class="ytd-label" style="margin-top:2px"><span>of ${ex.toFixed(0)}h expected</span></div>`
+      : `<span style="color:var(--text-dim);font-size:11px">—</span>`;
+    h+=`<tr onclick="editEmp('${e.id}')" style="cursor:pointer"><td class="emp-name">${e.name}</td><td><span class="emp-role">${e.role}</span></td><td>${e.dispDays}</td><td><span class="badge badge-${cls}">${hrs.toFixed(1)}h</span></td><td class="ytd-cell">${ytdCell}</td><td><span class="badge badge-${otCls}">${otLbl}</span></td><td><button class="btn-sm" onclick="event.stopPropagation();openEmpCal('${e.id}','${e.name}')" style="background:#3b82f6;color:#fff" title="Calendar">📅</button></td></tr>`;
+  });
   h+='</tbody></table></div>';el.innerHTML=h;
 }
 
@@ -544,7 +573,7 @@ function renderArchive(m){
 }
 
 // ===== EMPLOYEE MANAGEMENT =====
-function addEmp(){openModal('➕ Add Employee',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Name *</label><input type="text" id="nN" class="fi" placeholder="JOHN"></div><div class="fg"><label class="fl">PIN</label><input type="text" id="nP" class="fi" placeholder="Auto" maxlength="4"></div><div class="fg"><label class="fl">Role</label><select id="nR" class="fs"><option value="employee">Employee</option><option value="admin">Admin</option></select></div><div class="fg"><label class="fl">Annual Hours</label><input type="number" id="nH" class="fi" value="1776"></div><div class="fg"><label class="fl">Vacation</label><input type="number" id="nA" class="fi" value="30"></div><div class="fg"><label class="fl">Personal</label><input type="number" id="nPD" class="fi" value="2"></div></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveAdd()">➕ Add</button></div>`);}
+function addEmp(){openModal('➕ Add Employee',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Name *</label><input type="text" id="nN" class="fi" placeholder="JOHN"></div><div class="fg"><label class="fl">PIN</label><input type="text" id="nP" class="fi" placeholder="Auto" maxlength="4"></div><div class="fg"><label class="fl">Role</label><select id="nR" class="fs"><option value="employee">Employee</option><option value="admin">Admin</option></select></div><div class="fg"><label class="fl">Annual Hours</label><input type="number" id="nH" class="fi" value="1791"></div><div class="fg"><label class="fl">Vacation</label><input type="number" id="nA" class="fi" value="30"></div><div class="fg"><label class="fl">Personal</label><input type="number" id="nPD" class="fi" value="2"></div></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveAdd()">➕ Add</button></div>`);}
 async function saveAdd(){const n=$('nN').value.trim();if(!n)return toast('Name required','error');const btn=document.querySelector('#mBody .btn-save');btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'addEmployee',name:n,pin:$('nP').value||'',role:$('nR').value,annualDays:$('nA').value,personalDays:$('nPD').value,expectedHours:$('nH').value});if(r.success){
   // Add to local state immediately
   const newEmp={id:r.id,name:n.toUpperCase(),pin:r.pin||$('nP').value,role:$('nR').value,status:'Active',annualDays:Number($('nA').value),personalDays:Number($('nPD').value),expectedHours:Number($('nH').value),medicalHours:20};
