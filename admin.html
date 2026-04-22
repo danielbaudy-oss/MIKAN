@@ -362,17 +362,19 @@ async function doFreeze(){
   // Safety: never freeze today or a future date
   const today=new Date();const todayStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
   if(ds>=todayStr)return toast('Freeze date must be before today','error');
-  if(!confirm(`Freeze all punches through ${ds}?`))return;
   const btn=$('freezeBtn');btn.disabled=true;btn.textContent='⏳';
-  try{await API.setFreezeDate(ds);toast('Frozen','success');renderFreezeTab();}
+  try{await API.setFreezeDate(ds);toast(`Frozen through ${ds}`,'success');renderFreezeTab();}
   catch(e){toast('Error','error');btn.disabled=false;btn.textContent='🔒 Freeze';}
 }
-function freezeYesterday(){
+// Quick-pick: freeze straight through yesterday without the date input dance.
+async function freezeYesterday(){
   const y=new Date();y.setDate(y.getDate()-1);
   const ds=`${y.getFullYear()}-${String(y.getMonth()+1).padStart(2,'0')}-${String(y.getDate()).padStart(2,'0')}`;
   const inp=$('freezeDateInput');if(inp)inp.value=ds;
+  try{await API.setFreezeDate(ds);toast(`Frozen through ${ds}`,'success');renderFreezeTab();}
+  catch(e){toast('Error','error');}
 }
-async function doUnfreeze(){if(!confirm('Unfreeze all punches?'))return;const btn=$('unfreezeBtn');btn.disabled=true;btn.textContent='⏳';try{await API.setFreezeDate('');toast('Unfrozen','success');renderFreezeTab();}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='🔓 Unfreeze';}}
+async function doUnfreeze(){const btn=$('unfreezeBtn');btn.disabled=true;btn.textContent='⏳';try{await API.setFreezeDate('');toast('Unfrozen','success');renderFreezeTab();}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='🔓 Unfreeze';}}
 // Employee Calendar Modal
 async function openEmpCal(id,name){
   S.selEmp={id,name};S.calDate=new Date(S.yr,S.mo-1,1);
