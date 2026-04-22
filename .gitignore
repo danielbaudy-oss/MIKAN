@@ -1,6 +1,25 @@
+# Editor / tooling
+.vscode/
+.idea/
+
+# Legacy Google Apps Script era
 .clasp.json
 .claspignore
 appsscript.json
 Code.gs
 apps-script/
-.vscode/
+
+# Supabase CLI local state
+supabase/.temp/
+supabase/.branches/
+
+# Kiro local-only settings (may contain tokens)
+.kiro/settings/
+.kiro/specs/
+
+# Reference docs / large binaries not needed in the repo
+convenio-hosteleria-interprovincial-*.pdf
+
+# Node
+node_modules/
+npm-debug.log
