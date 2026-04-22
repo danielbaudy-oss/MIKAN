@@ -244,14 +244,14 @@ function renderHours(m){
   h+=`<div class="stats-grid stats-grid-5"><div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">${te}</div><div class="stat-label">Employees</div></div><div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-value">${th.toFixed(1)}h</div><div class="stat-label">${periodLbl}</div></div><div class="stat-card"><div class="stat-icon">📅</div><div class="stat-value">${yh.toFixed(0)}h</div><div class="stat-label">Year Hours</div></div><div class="stat-card"><div class="stat-icon">🎯</div><div class="stat-value">${onTrack}/${te}</div><div class="stat-label">On Track</div></div><div class="stat-card"><div class="stat-icon">📋</div><div class="stat-value">${S.pending.length}</div><div class="stat-label">Pending</div></div></div>`;
   // Tabs row with view toggle + date selector
   h+=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">`;
-  h+=`<div class="tabs" id="hrTabs" style="margin-bottom:0;flex:1"><button class="tab ${S.hrActiveTab==='empTab'?'active':''}" onclick="hrTab('empTab')">👥 Employees</button><button class="tab ${S.hrActiveTab==='paidTab'?'active':''}" onclick="hrTab('paidTab')">💰 Paid Hours</button><button class="tab ${S.hrActiveTab==='freezeTab'?'active':''}" onclick="hrTab('freezeTab')">🔒 Freeze</button></div>`;
+  h+=`<div class="tabs" id="hrTabs" style="margin-bottom:0;flex:1"><button class="tab ${S.hrActiveTab==='empTab'?'active':''}" onclick="hrTab('empTab')">👥 Employees</button></div>`;
   h+=`<div style="display:flex;gap:6px;align-items:center">`;
   h+=`<div class="tabs" style="margin-bottom:0;padding:3px"><button class="tab ${S.viewMode==='monthly'?'active':''}" onclick="setView('monthly')" style="padding:6px 10px;font-size:11px">📅 Monthly</button><button class="tab ${S.viewMode==='weekly'?'active':''}" onclick="setView('weekly')" style="padding:6px 10px;font-size:11px">📆 Weekly</button></div>`;
   h+=S.viewMode==='monthly'?mSel():wSel();
   h+=`</div></div>`;
-  h+=`<div id="empTab" class="tab-content ${S.hrActiveTab==='empTab'?'active':''}"></div><div id="paidTab" class="tab-content ${S.hrActiveTab==='paidTab'?'active':''}"></div><div id="freezeTab" class="tab-content ${S.hrActiveTab==='freezeTab'?'active':''}"></div>`;
+  h+=`<div id="empTab" class="tab-content active"></div>`;
   m.innerHTML=h;
-  renderEmpTable();renderPaidTab();renderFreezeTab();
+  renderEmpTable();
 }
 
 function setView(v){S.viewMode=v;S.weekOff=0;render();}
@@ -478,35 +478,24 @@ function exportCSV(){let csv='Name,Role,Days Worked,Hours\n';S.dash.forEach(e=>{
 // ===== TIME OFF SECTION =====
 function renderTimeoff(m){
   // Compute team-wide usage stats for the header cards.
-  // Filter approved holidays to the current year (S.yr) so stats reset annually.
+  // Filter approved holidays to the current year so stats reset annually.
   const yr = S.yr;
   const active = (S.emps||[]).filter(e => e.status === 'Active');
   const approved = (S.approvedHols||[]).filter(r => {
     const y = parseInt((r.startDate||'').slice(0,4), 10);
     return y === yr;
   });
-  const sumApproved = (type, field) => approved
-    .filter(r => r.type === type)
-    .reduce((s, r) => s + (Number(r[field]) || 0), 0);
   const totalAnnualAllocated = active.reduce((s,e) => s + (e.annualDays||0), 0);
-  const totalPersonalAllocated = active.reduce((s,e) => s + (e.personalDays||0), 0);
-  const totalMedHoursAllocated = active.reduce((s,e) => s + (e.medicalHours||0), 0);
-  const usedAnnual = sumApproved('Annual', 'days');
-  const usedPersonal = sumApproved('Personal', 'days');
-  // MedAppt is hour-based in the employee view — days field holds the hours count
-  const usedMedAppt = sumApproved('MedAppt', 'days');
-  const pct = (used, total) => total > 0 ? Math.round((used/total)*100) : 0;
-  const annualPct = pct(usedAnnual, totalAnnualAllocated);
-  const personalPct = pct(usedPersonal, totalPersonalAllocated);
-  const medPct = pct(usedMedAppt, totalMedHoursAllocated);
+  const usedAnnual = approved.filter(r => r.type === 'Annual').reduce((s,r) => s + (Number(r.days)||0), 0);
+  const annualPct = totalAnnualAllocated > 0 ? Math.round((usedAnnual/totalAnnualAllocated)*100) : 0;
   const pending = S.pending.length;
+  const approvedThisYear = approved.length;
 
   let h=`<div class="page-header"><div><div class="page-title">🏖️ Time Off</div></div><button class="btn btn-primary" onclick="refresh()">🔄 Refresh</button></div>`;
-  // Stats cards — matches the "Employee Hours" card style
-  h+=`<div class="stats-grid"><div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-value" style="${pending?'color:#92400e':''}">${pending}</div><div class="stat-label">Pending</div></div>`;
+  // Stats cards (3-up): pending, vacation usage, approved this year
+  h+=`<div class="stats-grid" style="grid-template-columns:repeat(3,1fr)"><div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-value" style="${pending?'color:#92400e':''}">${pending}</div><div class="stat-label">Pending</div></div>`;
   h+=`<div class="stat-card"><div class="stat-icon">🏖️</div><div class="stat-value">${annualPct}%</div><div class="stat-label">Vacation · ${usedAnnual}/${totalAnnualAllocated}d</div></div>`;
-  h+=`<div class="stat-card"><div class="stat-icon">👤</div><div class="stat-value">${personalPct}%</div><div class="stat-label">Personal · ${usedPersonal}/${totalPersonalAllocated}d</div></div>`;
-  h+=`<div class="stat-card"><div class="stat-icon">🏥</div><div class="stat-value">${medPct}%</div><div class="stat-label">Med. Visit · ${usedMedAppt}/${totalMedHoursAllocated}h</div></div></div>`;
+  h+=`<div class="stat-card"><div class="stat-icon">✅</div><div class="stat-value">${approvedThisYear}</div><div class="stat-label">Approved in ${yr}</div></div></div>`;
   h+=`<div class="tabs" id="toTabs"><button class="tab active" onclick="toTab('reqTab')">📋 Requests${S.pending.length?` <span class="tab-badge">${S.pending.length}</span>`:''}</button><button class="tab" onclick="toTab('ovTab')">📊 Overview</button><button class="tab" onclick="toTab('calTab')">📅 Calendar</button><button class="tab" onclick="toTab('cloTab')">🗓️ Closures</button></div>`;
   h+=`<div id="reqTab" class="tab-content active"></div><div id="ovTab" class="tab-content"></div><div id="calTab" class="tab-content"></div><div id="cloTab" class="tab-content"></div>`;
   m.innerHTML=h;renderReqTab();renderOvTab();renderCalTab();renderCloTab();
@@ -536,12 +525,10 @@ function renderOvTab(){
   const rows=S.emps.filter(e=>e.status==='Active').map(e=>{
     const my=all.filter(h=>h.employeeId===e.id);
     const vac=my.filter(h=>h.type==='Annual').reduce((s,h)=>s+h.days,0);
-    const per=my.filter(h=>h.type==='Personal').reduce((s,h)=>s+h.days,0);
     const sick=my.filter(h=>h.type==='Medical').reduce((s,h)=>s+h.days,0);
-    const med=my.filter(h=>h.type==='MedAppt').reduce((s,h)=>s+h.days,0);
-    return `<tr><td class="emp-name">${e.name}</td><td>${vac}/${e.annualDays}</td><td>${per}/${e.personalDays}</td><td>${sick}</td><td>${med}h/${e.medicalHours||20}h</td></tr>`;
+    return `<tr><td class="emp-name">${e.name}</td><td>${vac}/${e.annualDays}</td><td>${sick}</td></tr>`;
   }).join('');
-  el.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">📊 Holiday Overview</span></div><table><thead><tr><th>Employee</th><th>Vacation</th><th>Personal</th><th>Sick</th><th>Med. Visit</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  el.innerHTML=`<div class="card"><div class="card-header"><span class="card-title">📊 Holiday Overview</span></div><table><thead><tr><th>Employee</th><th>Vacation</th><th>Sick</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 function renderCalTab(){
@@ -641,15 +628,15 @@ function renderArchive(m){
 }
 
 // ===== EMPLOYEE MANAGEMENT =====
-function addEmp(){openModal('➕ Add Employee',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Name *</label><input type="text" id="nN" class="fi" placeholder="JOHN"></div><div class="fg"><label class="fl">Email (Google)</label><input type="email" id="nE" class="fi" placeholder="person@gmail.com"></div><div class="fg"><label class="fl">Role</label><select id="nR" class="fs"><option value="employee">Employee</option><option value="admin">Admin</option></select></div><div class="fg"><label class="fl">Annual Hours</label><input type="number" id="nH" class="fi" value="1791"></div><div class="fg"><label class="fl">Vacation</label><input type="number" id="nA" class="fi" value="30"></div><div class="fg"><label class="fl">Personal</label><input type="number" id="nPD" class="fi" value="2"></div></div><p style="color:var(--text-dim);font-size:11px;margin-top:8px">Use the Gmail address the employee will sign in with. Leave blank to add them later.</p><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveAdd()">➕ Add</button></div>`);}
-async function saveAdd(){const n=$('nN').value.trim();if(!n)return toast('Name required','error');const btn=document.querySelector('#mBody .btn-save');btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'addEmployee',name:n,email:$('nE').value||'',role:$('nR').value,annualDays:$('nA').value,personalDays:$('nPD').value,expectedHours:$('nH').value});if(r.success){
+function addEmp(){openModal('➕ Add Employee',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Name *</label><input type="text" id="nN" class="fi" placeholder="JOHN"></div><div class="fg"><label class="fl">Email (Google)</label><input type="email" id="nE" class="fi" placeholder="person@gmail.com"></div><div class="fg"><label class="fl">Role</label><select id="nR" class="fs"><option value="employee">Employee</option><option value="admin">Admin</option></select></div><div class="fg"><label class="fl">Annual Hours</label><input type="number" id="nH" class="fi" value="1791"></div><div class="fg"><label class="fl">Vacation Days</label><input type="number" id="nA" class="fi" value="30"></div></div><p style="color:var(--text-dim);font-size:11px;margin-top:8px">Use the Gmail address the employee will sign in with. Leave blank to add them later.</p><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveAdd()">➕ Add</button></div>`);}
+async function saveAdd(){const n=$('nN').value.trim();if(!n)return toast('Name required','error');const btn=document.querySelector('#mBody .btn-save');btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'addEmployee',name:n,email:$('nE').value||'',role:$('nR').value,annualDays:$('nA').value,expectedHours:$('nH').value});if(r.success){
   const email=$('nE').value.toLowerCase().trim()||null;
-  const newEmp={id:r.id,name:n.toUpperCase(),email,role:$('nR').value,status:email?'Active':'Pending',annualDays:Number($('nA').value),personalDays:Number($('nPD').value),expectedHours:Number($('nH').value),medicalHours:20,linked:false};
+  const newEmp={id:r.id,name:n.toUpperCase(),email,role:$('nR').value,status:email?'Active':'Pending',annualDays:Number($('nA').value),personalDays:0,expectedHours:Number($('nH').value),medicalHours:0,linked:false};
   S.emps.push(newEmp);S.dash.push({...newEmp,monthHours:0,daysWorked:0,dailyHours:{},yearHours:0,dailyHoursYear:{}});
   toast(r.message,'success');closeModal();renderEmpTable();
 }else{toast(r.message,'error');btn.disabled=false;btn.textContent='➕ Add';}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='➕ Add';}}
 
-function editEmp(id){const e=S.emps.find(x=>x.id===id);if(!e)return;openModal('✏️ Edit Employee',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Name</label><input type="text" id="eN" class="fi" value="${e.name}"></div><div class="fg"><label class="fl">Email (Google)</label><input type="email" id="eE" class="fi" value="${e.email||''}" placeholder="person@gmail.com"></div><div class="fg"><label class="fl">Role</label><select id="eR" class="fs"><option value="employee" ${e.role==='employee'?'selected':''}>Employee</option><option value="admin" ${e.role==='admin'?'selected':''}>Admin</option></select></div><div class="fg"><label class="fl">Status</label><select id="eS" class="fs"><option value="Active" ${e.status==='Active'?'selected':''}>Active</option><option value="Pending" ${e.status==='Pending'?'selected':''}>Pending</option><option value="Inactive" ${e.status==='Inactive'?'selected':''}>Inactive</option></select></div><div class="fg"><label class="fl">Vacation</label><input type="number" id="eA" class="fi" value="${e.annualDays}"></div><div class="fg"><label class="fl">Personal</label><input type="number" id="ePD" class="fi" value="${e.personalDays}"></div><div class="fg"><label class="fl">Annual Hours</label><input type="number" id="eH" class="fi" value="${e.expectedHours}"></div><div class="fg"><label class="fl">Medical Hours</label><input type="number" id="eMH" class="fi" value="${e.medicalHours||20}"></div></div>
+function editEmp(id){const e=S.emps.find(x=>x.id===id);if(!e)return;openModal('✏️ Edit Employee',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Name</label><input type="text" id="eN" class="fi" value="${e.name}"></div><div class="fg"><label class="fl">Email (Google)</label><input type="email" id="eE" class="fi" value="${e.email||''}" placeholder="person@gmail.com"></div><div class="fg"><label class="fl">Role</label><select id="eR" class="fs"><option value="employee" ${e.role==='employee'?'selected':''}>Employee</option><option value="admin" ${e.role==='admin'?'selected':''}>Admin</option></select></div><div class="fg"><label class="fl">Status</label><select id="eS" class="fs"><option value="Active" ${e.status==='Active'?'selected':''}>Active</option><option value="Pending" ${e.status==='Pending'?'selected':''}>Pending</option><option value="Inactive" ${e.status==='Inactive'?'selected':''}>Inactive</option></select></div><div class="fg"><label class="fl">Vacation Days</label><input type="number" id="eA" class="fi" value="${e.annualDays}"></div><div class="fg"><label class="fl">Annual Hours</label><input type="number" id="eH" class="fi" value="${e.expectedHours}"></div></div>
   <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:10px">
     <div>
       <div style="font-size:12px;font-weight:600">🔗 Google link</div>
@@ -658,8 +645,8 @@ function editEmp(id){const e=S.emps.find(x=>x.id===id);if(!e)return;openModal('�
     <span class="badge badge-${e.linked?'good':'warn'}">${e.linked?'Linked':'Pending first sign-in'}</span>
   </div>
   <div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveEdit('${id}')">💾 Save</button></div>`);}
-async function saveEdit(id){const btn=document.querySelector('#mBody .btn-save');btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'editEmployee',id,name:$('eN').value,email:$('eE').value,role:$('eR').value,status:$('eS').value,annualDays:$('eA').value,personalDays:$('ePD').value,expectedHours:$('eH').value,medicalHours:$('eMH').value});if(r.success){
-  const i=S.emps.findIndex(x=>x.id===id);if(i>-1){S.emps[i]={...S.emps[i],name:$('eN').value.toUpperCase(),email:$('eE').value.toLowerCase().trim()||null,role:$('eR').value,status:$('eS').value,annualDays:Number($('eA').value),personalDays:Number($('ePD').value),expectedHours:Number($('eH').value),medicalHours:Number($('eMH').value)};}
+async function saveEdit(id){const btn=document.querySelector('#mBody .btn-save');btn.disabled=true;btn.textContent='⏳';try{const r=await api({action:'editEmployee',id,name:$('eN').value,email:$('eE').value,role:$('eR').value,status:$('eS').value,annualDays:$('eA').value,expectedHours:$('eH').value});if(r.success){
+  const i=S.emps.findIndex(x=>x.id===id);if(i>-1){S.emps[i]={...S.emps[i],name:$('eN').value.toUpperCase(),email:$('eE').value.toLowerCase().trim()||null,role:$('eR').value,status:$('eS').value,annualDays:Number($('eA').value),expectedHours:Number($('eH').value)};}
   const di=S.dash.findIndex(x=>x.id===id);if(di>-1){S.dash[di]={...S.dash[di],name:$('eN').value.toUpperCase(),role:$('eR').value};}
   toast('Updated','success');closeModal();renderEmpTable();
 }else{toast(r.message,'error');btn.disabled=false;btn.textContent='💾 Save';}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='💾 Save';}}

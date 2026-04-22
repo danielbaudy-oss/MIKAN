@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="MIKAN">
   <meta name="theme-color" content="#e9b595">
   <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="apple-touch-icon" href="logo-white.png">
   <title>MIKAN - Employee</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;touch-action:manipulation}
@@ -241,9 +241,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:var(--accent);border:1px solid var(--accent-dark);display:inline-block"></span>Punched</span>
       <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#fef3c7;border:1px solid #f59e0b;display:inline-block"></span>Closure</span>
       <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#dbeafe;border:1px solid #3b82f6;display:inline-block"></span>Vacation</span>
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#ede9fe;border:1px solid #8b5cf6;display:inline-block"></span>Personal</span>
       <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#fee2e2;border:1px solid #ef4444;display:inline-block"></span>Sick</span>
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#fef3c7;border:1px solid #f59e0b;display:inline-block"></span>Med. Visit</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#fee2e2;border:1px solid #ef4444;display:inline-block"></span>Sick</span>
     </div>
   </div>
 </div>
@@ -297,9 +296,7 @@ async function bootstrapAuth(){
 
 const HOLIDAY_TYPES = {
   Annual: { name: 'Vacation', emoji: '🏖️' },
-  Personal: { name: 'Personal Day', emoji: '👤' },
-  Medical: { name: 'Sick Leave', emoji: '🏥' },
-  MedAppt: { name: 'Medical Visit', emoji: '⚕️' }
+  Medical: { name: 'Sick Leave', emoji: '🏥' }
 };
 
 // State
@@ -600,7 +597,7 @@ function renderCalendar() {
     // Priority: selected > holiday type > closure > punches
     if(ds!==selStr){
       if(holType){
-        const colors={Annual:{bg:'#dbeafe',br:'#3b82f6'},Personal:{bg:'#ede9fe',br:'#8b5cf6'},Medical:{bg:'#fee2e2',br:'#ef4444'},MedAppt:{bg:'#fef3c7',br:'#f59e0b'}};
+        const colors={Annual:{bg:'#dbeafe',br:'#3b82f6'},Medical:{bg:'#fee2e2',br:'#ef4444'}};
         const c=colors[holType]||{bg:'#e5e7eb',br:'#9ca3af'};
         style=`background:${c.bg};border:1px solid ${c.br}`;
       } else if(closure){
@@ -643,15 +640,15 @@ async function loadHolidayData() {
 
 function updateBadge() {
   const s=S.holidaySummary; if(!s)return;
-  const p=(s.annualPending||0)+(s.personalPending||0)+(s.medicalPending||0);
+  const p=(s.annualPending||0)+(s.medicalPending||0);
   const b=$('pendingBadge');
   if(p>0){b.textContent=p;b.style.display='inline';}else b.style.display='none';
 }
 
 function displayHolidayTab(showSuccess) {
-  const s = S.holidaySummary || { annualTotal:22,annualUsed:0,annualPending:0,annualRemaining:22,personalTotal:3,personalUsed:0,personalPending:0,personalRemaining:3,medicalUsed:0,medicalPending:0,requests:[] };
+  const s = S.holidaySummary || { annualTotal:22,annualUsed:0,annualPending:0,annualRemaining:22,medicalUsed:0,medicalPending:0,requests:[] };
   const today = new Date().toISOString().split('T')[0];
-  const pending = (s.annualPending||0)+(s.personalPending||0)+(s.medicalPending||0);
+  const pending = (s.annualPending||0)+(s.medicalPending||0);
 
   let html = '';
   if (showSuccess) {
@@ -663,9 +660,7 @@ function displayHolidayTab(showSuccess) {
     <div class="holiday-summary-title">Your Balance ${pending?`<span class="tab-badge">${pending} pending</span>`:''}</div>
     <div class="holiday-stats">
       <div class="holiday-stat"><div class="holiday-stat-value">${s.annualUsed}/${s.annualTotal}</div><div class="holiday-stat-label">Vacation</div></div>
-      <div class="holiday-stat"><div class="holiday-stat-value">${s.personalUsed}/${s.personalTotal}</div><div class="holiday-stat-label">Personal</div></div>
       <div class="holiday-stat"><div class="holiday-stat-value">${s.medicalUsed}</div><div class="holiday-stat-label">Sick Days</div></div>
-      <div class="holiday-stat"><div class="holiday-stat-value">${s.medApptUsed||0}h/${s.medicalHoursTotal||20}h</div><div class="holiday-stat-label">Med. Visits</div></div>
     </div>
   </div>`;
 
@@ -676,9 +671,7 @@ function displayHolidayTab(showSuccess) {
       <label class="form-label">Type</label>
       <div class="holiday-type-grid">
         <div class="holiday-type-btn" onclick="selectType('Annual')" id="type-Annual"><div class="holiday-type-icon">🏖️</div><div class="holiday-type-name">Vacation</div></div>
-        <div class="holiday-type-btn" onclick="selectType('Personal')" id="type-Personal"><div class="holiday-type-icon">👤</div><div class="holiday-type-name">Personal</div></div>
         <div class="holiday-type-btn" onclick="selectType('Medical')" id="type-Medical"><div class="holiday-type-icon">🏥</div><div class="holiday-type-name">Sick Leave</div></div>
-        <div class="holiday-type-btn" onclick="selectType('MedAppt')" id="type-MedAppt"><div class="holiday-type-icon">⚕️</div><div class="holiday-type-name">Med. Visit</div></div>
       </div>
     </div>
     <div id="dateFields">
@@ -688,17 +681,6 @@ function displayHolidayTab(showSuccess) {
         <div class="date-field"><div class="date-field-label">From</div><input type="date" class="form-input" id="holidayStart" onchange="onStartChange()"></div>
         <div class="date-field" id="endDateField"><div class="date-field-label">To</div><input type="date" class="form-input" id="holidayEnd" onchange="updatePreview()"></div>
       </div>
-    </div>
-    </div>
-    <div id="medApptFields" style="display:none">
-    <div class="form-group">
-      <label class="form-label">Date & Time</label>
-      <input type="date" class="form-input" id="medApptDate" style="margin-bottom:8px">
-      <div class="date-range-group" style="margin-top:6px">
-        <div class="date-field"><div class="date-field-label">From</div><input type="time" class="form-input" id="medApptStart" value="09:00" onchange="updateMedHours()" style="text-align:center;font-weight:600"></div>
-        <div class="date-field"><div class="date-field-label">To</div><input type="time" class="form-input" id="medApptEnd" value="10:00" onchange="updateMedHours()" style="text-align:center;font-weight:600"></div>
-      </div>
-      <div id="medHoursPreview" style="text-align:center;font-size:18px;font-weight:700;color:var(--accent-dark);margin-top:8px">1.0h</div>
     </div>
     </div>
     <div id="daysPreview" style="display:none"><div class="days-preview"><div class="days-preview-value" id="previewValue">0</div><div class="days-preview-label">Days requested</div></div></div>
@@ -742,11 +724,9 @@ function updateHolidayInPlace() {  const s = S.holidaySummary;
   if (!s) return;
   // Update balance stats
   const stats = document.querySelectorAll('.holiday-stat');
-  if (stats.length >= 4) {
+  if (stats.length >= 2) {
     stats[0].querySelector('.holiday-stat-value').textContent = `${s.annualUsed}/${s.annualTotal}`;
-    stats[1].querySelector('.holiday-stat-value').textContent = `${s.personalUsed}/${s.personalTotal}`;
-    stats[2].querySelector('.holiday-stat-value').textContent = s.medicalUsed;
-    stats[3].querySelector('.holiday-stat-value').textContent = `${s.medApptUsed||0}h/${s.medicalHoursTotal||20}h`;
+    stats[1].querySelector('.holiday-stat-value').textContent = s.medicalUsed;
   }
   // Update requests list
   const reqList = document.querySelector('.card:last-child');
@@ -776,9 +756,6 @@ function selectType(type) {
   S.selectedHolidayType = type;
   document.querySelectorAll('.holiday-type-btn').forEach(b=>b.className='holiday-type-btn');
   $(`type-${type}`).classList.add('selected');
-  const dateFields=$('dateFields'), medFields=$('medApptFields'), endField=$('endDateField');
-  if(type==='MedAppt'){dateFields.style.display='none';medFields.style.display='block';}
-  else{dateFields.style.display='block';medFields.style.display='none';endField.style.display='';}
 }
 
 function onStartChange() {
@@ -796,40 +773,8 @@ function updatePreview() {
   $('previewValue').textContent=days;
 }
 
-function updateMedHours(){
-  const s=$('medApptStart').value, e=$('medApptEnd').value, p=$('medHoursPreview');
-  if(!s||!e){p.textContent='—';return;}
-  const[sh,sm]=s.split(':').map(Number),[eh,em]=e.split(':').map(Number);
-  const diff=(eh*60+em)-(sh*60+sm);
-  if(diff<=0){p.textContent='⚠️ End must be after start';p.style.color='var(--danger)';return;}
-  p.textContent=Math.round((diff/60)*100)/100+'h';p.style.color='var(--accent-dark)';
-}
-
 async function submitHoliday() {
   if(!S.selectedHolidayType) return showToast('Please select a type','error');
-  const type=S.selectedHolidayType;
-
-  if(type==='MedAppt'){
-    const date=$('medApptDate').value, st=$('medApptStart').value, et=$('medApptEnd').value;
-    if(!date) return showToast('Please select a date','error');
-    if(!st||!et) return showToast('Please select times','error');
-    const[sh,sm]=st.split(':').map(Number),[eh,em]=et.split(':').map(Number);
-    const diff=(eh*60+em)-(sh*60+sm);
-    if(diff<=0) return showToast('End time must be after start','error');
-    const hours=Math.round((diff/60)*100)/100;
-    const btn=$('submitBtn');btn.disabled=true;btn.textContent='⏳ Submitting...';
-    try{
-      const r=await apiPost({action:'submitHoliday',employee:USER.id,name:USER.name,type:'MedAppt',startDate:date,endDate:date,reason:`${st}-${et} (${hours}h)`});
-      if(r.success){
-        btn.disabled=false;btn.textContent='📤 Submit Request';
-        showToast(`Medical visit submitted: ${hours}h`,'success');
-        loadHolidayData().then(()=>updateHolidayInPlace());
-      }
-      else{showToast(r.message,'error');btn.disabled=false;btn.textContent='📤 Submit Request';}
-    }catch(e){showToast('Error','error');btn.disabled=false;btn.textContent='📤 Submit Request';}
-    return;
-  }
-
   const start=$('holidayStart').value, end=$('holidayEnd').value, reason=$('holidayReason').value;
   if(!start||!end) return showToast('Please select dates','error');
   if(end<start) return showToast('End date must be after start','error');
