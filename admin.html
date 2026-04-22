@@ -688,12 +688,31 @@ async function exportAuditReport(){
     const eMap={};(eR.data||[]).forEach(e=>{eMap[e.id]=e.name;});
     const now=new Date().toLocaleString('en-US');
 
-    // --- Filter audit rows to operationally meaningful events --------------
-    // Skip rows that are only a cascaded employee_name change (the
-    // propagate_employee_name trigger fires whenever an employee is renamed —
-    // that's not an operational edit and would drown real events).
+    // Walk the audit log once to know, for each punch row, who created it
+    // (admin vs the employee themselves) and who last edited it. This is the
+    // only record of the acting user — punches.employee_name is the subject,
+    // not the actor.
+    const creatorMap={}, lastEditMap={};
+    (aR.data||[]).forEach(a=>{
+      if(a.table_name!=='punches')return;
+      if(a.action==='INSERT'&&!creatorMap[a.record_id]){
+        creatorMap[a.record_id]={by:a.changed_by||'', at:a.changed_at};
+      }
+      if(a.action==='UPDATE'){
+        const prev=lastEditMap[a.record_id];
+        if(!prev||a.changed_at>prev.at){
+          lastEditMap[a.record_id]={by:a.changed_by||'', at:a.changed_at};
+        }
+      }
+    });
+
+    // --- Filter audit rows to operationally meaningful CHANGES -----------
+    // INSERT events (clock-ins, new requests) are reflected on the Punches
+    // sheet directly; surfacing them here too would just be duplicate noise.
+    // The trail only shows edits and deletions.
+    // Also skip cascaded employee_name rewrites (from renames).
     const auditRows=(aR.data||[]).filter(a=>{
-      if(a.action==='INSERT')return true;
+      if(a.action==='INSERT')return false;
       if(a.action==='DELETE')return true;
       if(a.action==='UPDATE'&&a.old_data&&a.new_data){
         const keys=new Set([...Object.keys(a.old_data),...Object.keys(a.new_data)]);
@@ -759,15 +778,17 @@ async function exportAuditReport(){
 
     // === PUNCHES SHEET ==================================================
     x+='<Worksheet ss:Name="Punches"><Table>';
-    x+=`<Row><Cell ss:StyleID="title" ss:MergeAcross="8"><Data ss:Type="String">PUNCH RECORDS — MIKAN Restaurant</Data></Cell></Row>`;
-    x+=`<Row><Cell ss:StyleID="info" ss:MergeAcross="4"><Data ss:Type="String">Exported: ${esc(now)}</Data></Cell><Cell ss:StyleID="info" ss:MergeAcross="3"><Data ss:Type="String">Total: ${punches.length} records (incl. deleted)</Data></Cell></Row>`;
-    ['Employee','Date','Time','Type','Status','GPS Lat','GPS Lng','Edit / Delete Reason','Recorded'].forEach(()=>{});
-    x+='<Row>'+['Employee','Date','Time','Type','Status','GPS Lat','GPS Lng','Edit / Delete Reason','Recorded']
+    x+=`<Row><Cell ss:StyleID="title" ss:MergeAcross="10"><Data ss:Type="String">PUNCH RECORDS — MIKAN Restaurant</Data></Cell></Row>`;
+    x+=`<Row><Cell ss:StyleID="info" ss:MergeAcross="5"><Data ss:Type="String">Exported: ${esc(now)}</Data></Cell><Cell ss:StyleID="info" ss:MergeAcross="4"><Data ss:Type="String">Total: ${punches.length} records (incl. deleted)</Data></Cell></Row>`;
+    x+='<Row>'+['Employee','Date','Time','Type','Status','GPS Lat','GPS Lng','Edit / Delete Reason','Punched by','Recorded','Last modified']
       .map(h=>`<Cell ss:StyleID="header"><Data ss:Type="String">${h}</Data></Cell>`).join('')+'</Row>';
     punches.forEach(p=>{
       const status=p.is_deleted?'Deleted':(p.edited_at?'Edited':'Active');
       const style=p.is_deleted?'deleted':(p.edited_at?'edited':'');
       const reason=p.is_deleted?(p.deleted_reason||''):(p.edit_reason||'');
+      const creator=creatorMap[p.id]?.by || p.employee_name || '';
+      const lastEdit=lastEditMap[p.id];
+      const lastEditStr=lastEdit ? `${new Date(lastEdit.at).toLocaleString('en-US')} — ${lastEdit.by||'?'}` : '';
       x+='<Row>'
         +cell(p.employee_name,style)
         +cell(p.punch_date,style)
@@ -777,7 +798,9 @@ async function exportAuditReport(){
         +cell(p.latitude,style)
         +cell(p.longitude,style)
         +cell(reason,style)
+        +cell(creator,style)
         +cell(new Date(p.created_at).toLocaleString('en-US'),style)
+        +cell(lastEditStr,style)
         +'</Row>';
     });
     x+='</Table></Worksheet>';
