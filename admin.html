@@ -306,14 +306,21 @@ async function renderFreezeTab(){
   try{
     const freezeDate=await API.getFreezeDate();
     const isFrozen=!!freezeDate;
+    // Default date picker value = yesterday
+    const y=new Date();y.setDate(y.getDate()-1);
+    const yesterdayStr=`${y.getFullYear()}-${String(y.getMonth()+1).padStart(2,'0')}-${String(y.getDate()).padStart(2,'0')}`;
+    // Max allowed freeze date = yesterday (don't freeze today or future)
+    const defaultVal=isFrozen?freezeDate:yesterdayStr;
     let h=`<div class="card"><div class="card-header"><span class="card-title">🔒 Freeze Punches</span></div><div class="card-body">`;
-    h+=`<p style="color:var(--text-dim);font-size:13px;margin-bottom:14px">Freeze punches up to a date. Employees cannot edit frozen punches.</p>`;
+    h+=`<p style="color:var(--text-dim);font-size:13px;margin-bottom:14px">Freeze punches up to and including a chosen date. Employees cannot edit frozen punches. Admins still can.</p>`;
     h+=`<div style="background:${isFrozen?'#d1fae5':'var(--bg)'};border:1px solid ${isFrozen?'#a7f3d0':'var(--border)'};border-radius:10px;padding:14px;margin-bottom:14px">`;
     h+=`<div style="font-size:12px;color:var(--text-dim);text-transform:uppercase;font-weight:600;margin-bottom:4px">Status</div>`;
     h+=isFrozen?`<div style="font-size:16px;font-weight:700;color:#065f46">🔒 Frozen through ${freezeDate}</div>`:`<div style="font-size:16px;font-weight:700;color:var(--text-dim)">🔓 Not frozen</div>`;
     h+=`</div>`;
-    h+=`<div style="display:flex;gap:8px;flex-wrap:wrap">`;
-    h+=`<button class="btn btn-danger" onclick="doFreeze()" id="freezeBtn">🔒 Freeze through yesterday</button>`;
+    h+=`<div class="fg" style="max-width:240px"><label class="fl">Freeze through date</label><input type="date" id="freezeDateInput" class="fi" value="${defaultVal}" max="${yesterdayStr}"></div>`;
+    h+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">`;
+    h+=`<button class="btn btn-danger" onclick="doFreeze()" id="freezeBtn">🔒 ${isFrozen?'Update freeze date':'Freeze'}</button>`;
+    h+=`<button class="btn btn-primary" onclick="freezeYesterday()" style="background:var(--bg);color:var(--text-dim);border:1px solid var(--border)">↷ Yesterday</button>`;
     if(isFrozen)h+=`<button class="btn btn-primary" onclick="doUnfreeze()" id="unfreezeBtn" style="background:var(--success)">🔓 Unfreeze all</button>`;
     h+=`</div></div></div>`;
     el.innerHTML=h;
@@ -325,7 +332,22 @@ async function savePaidHr(){const sel=$('phEmp');const empId=sel.value;const emp
 function editPaidHr(id,name,hrs,date,notes){openModal('✏️ Edit Paid Hours',`<div class="fg"><label class="fl">Employee</label><input class="fi" value="${name}" disabled></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label class="fl">Hours</label><input type="number" id="ephHrs" class="fi" value="${hrs}" min="0.5" step="0.5"></div><div class="fg"><label class="fl">Date</label><input type="date" id="ephDate" class="fi" value="${date}"></div></div><div class="fg"><label class="fl">Notes</label><input type="text" id="ephNotes" class="fi" value="${notes}"></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" id="ephSave" onclick="saveEditPaidHr('${id}')">💾 Save</button></div>`);}
 async function saveEditPaidHr(id){const btn=$('ephSave');btn.disabled=true;btn.textContent='⏳';try{const r=await API.updatePaidHours(id,Number($('ephHrs').value),$('ephDate').value,$('ephNotes').value);if(r.success){toast('Updated','success');closeModal();renderPaidTab();}else{toast(r.message,'error');btn.disabled=false;btn.textContent='💾 Save';}}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='💾 Save';}}
 async function delPaidHr(id){if(!confirm('Delete?'))return;try{const r=await API.deletePaidHours(id);if(r.success){toast('Deleted','success');renderPaidTab();}else toast(r.message,'error');}catch(e){toast('Error','error');}}
-async function doFreeze(){const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);const ds=`${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;if(!confirm(`Freeze all punches through ${ds}?`))return;const btn=$('freezeBtn');btn.disabled=true;btn.textContent='⏳';try{await API.setFreezeDate(ds);toast('Frozen','success');renderFreezeTab();}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='🔒 Freeze';}}
+async function doFreeze(){
+  const ds=$('freezeDateInput').value;
+  if(!ds)return toast('Choose a date','error');
+  // Safety: never freeze today or a future date
+  const today=new Date();const todayStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  if(ds>=todayStr)return toast('Freeze date must be before today','error');
+  if(!confirm(`Freeze all punches through ${ds}?`))return;
+  const btn=$('freezeBtn');btn.disabled=true;btn.textContent='⏳';
+  try{await API.setFreezeDate(ds);toast('Frozen','success');renderFreezeTab();}
+  catch(e){toast('Error','error');btn.disabled=false;btn.textContent='🔒 Freeze';}
+}
+function freezeYesterday(){
+  const y=new Date();y.setDate(y.getDate()-1);
+  const ds=`${y.getFullYear()}-${String(y.getMonth()+1).padStart(2,'0')}-${String(y.getDate()).padStart(2,'0')}`;
+  const inp=$('freezeDateInput');if(inp)inp.value=ds;
+}
 async function doUnfreeze(){if(!confirm('Unfreeze all punches?'))return;const btn=$('unfreezeBtn');btn.disabled=true;btn.textContent='⏳';try{await API.setFreezeDate('');toast('Unfrozen','success');renderFreezeTab();}catch(e){toast('Error','error');btn.disabled=false;btn.textContent='🔓 Unfreeze';}}
 // Employee Calendar Modal
 async function openEmpCal(id,name){
