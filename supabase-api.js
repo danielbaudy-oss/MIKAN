@@ -254,30 +254,20 @@ const API = {
       return { totalMins, dailyHours, daysWorked: Object.keys(dayMap).length };
     };
 
-    // Prorated expected hours up to today (for on-track calc)
-    // Based on convenio: 1791h/year ÷ 365 days × elapsed days
-    const now = new Date();
-    const yearStartDate = new Date(year, 0, 1);
-    const yearEndDate = new Date(year, 11, 31);
-    const today = (now.getFullYear() === year) ? now : (now > yearEndDate ? yearEndDate : yearStartDate);
-    const daysElapsed = Math.max(1, Math.round((today - yearStartDate) / 86400000) + 1);
-    const daysInYear = ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) ? 366 : 365;
-    const yearProgress = daysElapsed / daysInYear;
+    // Year-to-date daily hours map per employee is computed below so the
+    // frontend can sum any slice (month/week end date) without re-fetching.
 
     const dashboard = activeEmps.map(emp => {
       const monthCalc = calcMins(allPunches.filter(p => p.employee_id === emp.id));
       const yearCalc = calcMins(allYearPunches.filter(p => p.employee_id === emp.id));
       const yearHours = Math.round((yearCalc.totalMins/60)*100)/100;
-      const expectedToDate = Math.round(emp.expected_hours * yearProgress * 100) / 100;
-      const overtimeHours = Math.max(0, Math.round((yearHours - expectedToDate) * 100) / 100);
-      const yearProgressPct = expectedToDate > 0 ? Math.round((yearHours / expectedToDate) * 1000) / 10 : 0;
       return {
         id: emp.id, name: emp.name, role: emp.role, pin: emp.pin, status: emp.status,
         annualDays: emp.annual_days, personalDays: emp.personal_days,
         expectedHours: emp.expected_hours, medicalHours: emp.medical_hours,
         monthHours: Math.round((monthCalc.totalMins/60)*100)/100,
         daysWorked: monthCalc.daysWorked, dailyHours: monthCalc.dailyHours,
-        yearHours, expectedToDate, overtimeHours, yearProgressPct
+        yearHours, dailyHoursYear: yearCalc.dailyHours
       };
     });
 
