@@ -200,17 +200,12 @@ async function chgMo(d){const n=new Date();if(d>0&&S.yr===n.getFullYear()&&S.mo=
   await loadAll(true);
   // Just re-render the table and stats, not the whole page
   renderEmpTable();
-  // Update stats cards (5 cards: Employees, Period, Year, On Track, Pending)
+  // Update stats cards (3 cards: Employees, Period, Year)
   const r=S.dash,te=r.length,th=S.viewMode==='weekly'?0:r.reduce((s,e)=>s+e.monthHours,0);
   const periodEnd=getPeriodEndDate();const periodEndStr=dateToStr(periodEnd);
   const yh=r.reduce((s,e)=>s+yearHoursThrough(e,periodEndStr),0);
-  const yearStart=new Date(S.yr,0,1);
-  const daysElapsed=Math.max(1,Math.round((periodEnd-yearStart)/86400000)+1);
-  const daysInYear=((S.yr%4===0&&S.yr%100!==0)||S.yr%400===0)?366:365;
-  const proration=daysElapsed/daysInYear;
-  const onTrack=r.filter(e=>{const exp=(e.expectedHours||1791)*proration;return exp>0&&yearHoursThrough(e,periodEndStr)>=exp*0.95;}).length;
   const cards=document.querySelectorAll('.stat-card .stat-value');
-  if(cards.length>=5){cards[0].textContent=te;cards[1].textContent=th.toFixed(1)+'h';cards[2].textContent=yh.toFixed(0)+'h';cards[3].textContent=`${onTrack}/${te}`;cards[4].textContent=S.pending.length;}
+  if(cards.length>=3){cards[0].textContent=te;cards[1].textContent=th.toFixed(1)+'h';cards[2].textContent=yh.toFixed(0)+'h';}
 }
 async function refresh(){$('mainContent').innerHTML='<div class="loading"><div class="spinner"></div><p>Refreshing...</p></div>';await loadAll(true);render();}
 </script>
@@ -233,15 +228,9 @@ function renderHours(m){
   }else{th=r.reduce((s,e)=>s+e.monthHours,0);}
   // Year-to-date totals up to end of current view period
   const yh=r.reduce((s,e)=>s+yearHoursThrough(e,periodEndStr),0);
-  // On-track — compare YTD to prorated 1,791h through the period end
-  const yearStart=new Date(S.yr,0,1);
-  const daysElapsed=Math.max(1,Math.round((periodEnd-yearStart)/86400000)+1);
-  const daysInYear=((S.yr%4===0&&S.yr%100!==0)||S.yr%400===0)?366:365;
-  const proration=daysElapsed/daysInYear;
-  const onTrack=r.filter(e=>{const exp=(e.expectedHours||1791)*proration;return exp>0&&yearHoursThrough(e,periodEndStr)>=exp*0.95;}).length;
   const periodLbl=S.viewMode==='weekly'?'Week Hours':'Month Hours';
   let h=`<div class="page-header"><div><div class="page-title">📊 Employee Hours</div></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-primary" onclick="exportCSV()">📥 Export</button><button class="btn btn-primary" onclick="exportAuditReport()">🔍 Audit</button><button class="btn btn-primary" onclick="refresh()">🔄</button></div></div>`;
-  h+=`<div class="stats-grid stats-grid-5"><div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">${te}</div><div class="stat-label">Employees</div></div><div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-value">${th.toFixed(1)}h</div><div class="stat-label">${periodLbl}</div></div><div class="stat-card"><div class="stat-icon">📅</div><div class="stat-value">${yh.toFixed(0)}h</div><div class="stat-label">Year Hours</div></div><div class="stat-card"><div class="stat-icon">🎯</div><div class="stat-value">${onTrack}/${te}</div><div class="stat-label">On Track</div></div><div class="stat-card"><div class="stat-icon">📋</div><div class="stat-value">${S.pending.length}</div><div class="stat-label">Pending</div></div></div>`;
+  h+=`<div class="stats-grid" style="grid-template-columns:repeat(3,1fr)"><div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">${te}</div><div class="stat-label">Employees</div></div><div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-value">${th.toFixed(1)}h</div><div class="stat-label">${periodLbl}</div></div><div class="stat-card"><div class="stat-icon">📅</div><div class="stat-value">${yh.toFixed(0)}h</div><div class="stat-label">Year Hours</div></div></div>`;
   // Tabs row with view toggle + date selector
   h+=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">`;
   h+=`<div class="tabs" id="hrTabs" style="margin-bottom:0;flex:1"><button class="tab ${S.hrActiveTab==='empTab'?'active':''}" onclick="hrTab('empTab')">👥 Employees</button></div>`;
