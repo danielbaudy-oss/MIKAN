@@ -7,6 +7,7 @@
   "background_color": "#ffffff",
   "theme_color": "#d4956e",
   "icons": [
-    { "src": "logo-white.png", "sizes": "500x500", "type": "image/png", "purpose": "any maskable" }
+    { "src": "icon.png", "sizes": "500x500", "type": "image/png", "purpose": "any" },
+    { "src": "icon.png", "sizes": "500x500", "type": "image/png", "purpose": "maskable" }
   ]
 }
